@@ -104,6 +104,76 @@ char g_szBanTimes[][] =
     "One Year"
 };
 
+methodmap HYPPlayer < JSONObject
+{
+    public HYPPlayer()
+    {
+        return view_as<HYPPlayer>(new JSONObject());
+    }
+
+    property int AccountID
+    {
+        public get()
+        {
+            return this.GetInt("accountid");
+        }
+
+        public set(int iValue)
+        {
+            this.SetInt("accountid", iValue);
+        }
+    }
+
+    property int AdminID
+    {
+        public get()
+        {
+            return this.GetInt("adminid");
+        }
+
+        public set(int iValue)
+        {
+            this.SetInt("adminid", iValue);
+        }
+    }
+
+    public void GetReason(char[] buffer, int maxlength)
+    {
+        this.GetString("reason", buffer, maxlength);
+    }
+
+    public void SetReason(const char[] value)
+    {
+        this.SetString("reason", value);
+    }
+
+    property int Expires
+    {
+        public get()
+        {
+            return this.GetInt("expires");
+        }
+
+        public set(int iValue)
+        {
+            this.SetInt("expires", iValue);
+        }
+    }
+
+    property int Type
+    {
+        public get()
+        {
+            return this.GetInt("type");
+        }
+
+        public set(int iValue)
+        {
+            this.SetInt("type", iValue);
+        }
+    }
+}
+
 methodmap HYPPunish
 {
     public HYPPunish(const int Index)
@@ -230,72 +300,3 @@ methodmap HYPPunish
     }
 }
 
-methodmap HYPPlayer < JSONObject
-{
-    public HYPPlayer()
-    {
-        return view_as<HYPPlayer>(new JSONObject());
-    }
-
-    property int AccountID
-    {
-        public get()
-        {
-            return this.GetInt("accountid");
-        }
-
-        public set(int iValue)
-        {
-            this.SetInt("accountid", iValue);
-        }
-    }
-
-    property int AdminID
-    {
-        public get()
-        {
-            return this.GetInt("adminid");
-        }
-
-        public set(int iValue)
-        {
-            this.SetInt("adminid", iValue);
-        }
-    }
-
-    public void GetReason(char[] buffer, int maxlength)
-    {
-        this.GetString("reason", buffer, maxlength);
-    }
-
-    public void SetReason(const char[] value)
-    {
-        this.SetString("reason", value);
-    }
-
-    property int Expires
-    {
-        public get()
-        {
-            return this.GetInt("expires");
-        }
-
-        public set(int iValue)
-        {
-            this.SetInt("expires", iValue);
-        }
-    }
-
-    property int Type
-    {
-        public get()
-        {
-            return this.GetInt("type");
-        }
-
-        public set(int iValue)
-        {
-            this.SetInt("type", iValue);
-        }
-    }
-}

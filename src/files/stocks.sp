@@ -5,7 +5,7 @@ stock void LogDebug(const char[] szFormat, any ...) {
 
 	VFormat(sBuffer, sizeof(sBuffer), szFormat, 2);
 
-	BuildPath(Path_SM, sLogPath, sizeof(sLogPath), "logs/hp_bans.txt");
+	BuildPath(Path_SM, sLogPath, sizeof(sLogPath), "logs/hp_bans.log");
 
 	LogToFile(sLogPath, sBuffer);
 }

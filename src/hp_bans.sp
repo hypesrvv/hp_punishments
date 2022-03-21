@@ -1,14 +1,18 @@
-#include <cstrike>
+#include <sourcemod>
 #include <DateTime>
 #include <sdkhooks>
 #include <sdktools>
-#include <sourcemod>
-#include <hype>
-#include <hype/hypebans>
-#include <regex>
+#include <cstrike>
 #include <ripext>
+#include <regex>
+#include <hype/hypebans>
+#include <hype>
 
-#define DEBUG         true
+#if !defined RSVP_COMPILER
+	#define decl static
+#endif
+
+#define DEBUG
 #define MAX_NAME_TRIM 16
 
 #define TAG_BANS_CONSOLE "[{GREEN}BANS{WHITE}]"
@@ -28,10 +32,10 @@
 #pragma newdecls required
 
 #include <files/globals.sp>
-#include <files/menus.sp>
-#include <files/natives.sp>
-#include <files/rest.sp>
 #include <files/stocks.sp>
+#include <files/natives.sp>
+#include <files/menus.sp>
+#include <files/rest.sp>
 
 public Plugin myinfo =
 {
@@ -76,7 +80,7 @@ public Action Command_Ban(int iClient, int iArgs)
 		return Plugin_Handled;
 	}
 
-	char szArguments[128];
+	decl char szArguments[128];
 
 	static const char szDay[][] = { "d", "day", "days" };
 	static const char szMonth[][] = { "m", "month", "mo", "months" };
@@ -94,19 +98,17 @@ public Action Command_Ban(int iClient, int iArgs)
 		return Plugin_Handled;
 	}
 
-	char szTarget[32];
+	decl char szTarget[32];
 	hRegex.GetSubString(1, szTarget, sizeof(szTarget), 0);
 
-	// Grab the number from the 1st capture group
-	char szBanNumber[5];
+	decl char szBanNumber[5];
 	hRegex.GetSubString(2, szBanNumber, sizeof(szBanNumber), 0);
 	int iBanNumber = StringToInt(szBanNumber);
 
-	// Grab the type (month, day hour) from 2nd regex capture
-	char szBanPeriod[4];
+	decl char szBanPeriod[4];
 	hRegex.GetSubString(3, szBanPeriod, sizeof(szBanPeriod), 0);
 
-	char szReason[64];
+	decl char szReason[64];
 	if (iCaptures == 5)
 	{
 		hRegex.GetSubString(4, szReason, sizeof(szReason), 0);
@@ -165,3 +167,4 @@ public Action Command_Ban(int iClient, int iArgs)
 // }
 
 // subtract 250 from string
+

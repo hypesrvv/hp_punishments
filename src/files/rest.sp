@@ -9,7 +9,7 @@ void HTTPRequest_OnPlayerBan(HTTPResponse hResponse, any data)
 		return;
 	}
 
-	Forward_OnClientPunished(GetClientOfUserId(data))
+	Forward_OnClientPunished(GetClientOfUserId(data));
 
 #if defined DEBUG
 	JSONObject jObject = view_as<JSONObject>(hResponse.Data);

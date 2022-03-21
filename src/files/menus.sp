@@ -2,7 +2,7 @@ void DisplayAdminMenu(int iClient)
 {
     Menu hMenu = new Menu(Build_AdminMainMenu);
 
-    hMenu.SetTitle(TAG_MENU ... "Admin Menu\n ")
+    hMenu.SetTitle(TAG_MENU ... "Admin Menu\n ");
 
     hMenu.AddItem("0", "Ban");
     hMenu.AddItem("1", "Kick");
