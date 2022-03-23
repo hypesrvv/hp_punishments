@@ -5,7 +5,7 @@
 #include <cstrike>
 #include <ripext>
 #include <regex>
-#include <hype/hypebans>
+#include <hype/bans>
 #include <hype>
 
 #if !defined RSVP_COMPILER

@@ -1,7 +1,7 @@
-#if defined _csfirebans_included
+#if defined _punishments_included
     #endinput
 #endif
-#define _csfirebans_included
+#define _punishments_included
 
 /**
  *	Called once a client is punnished
@@ -10,4 +10,4 @@
  *
  *	@noreturn
 */
-forward void FB_OnClientPunished(int iClient);
+forward void HP_OnClientPunished(int iClient);

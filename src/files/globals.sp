@@ -7,51 +7,49 @@ enum struct Global
 
 Global Core;
 
-enum struct User
+enum struct Target
 {
-    int iClient;
-    char szName[MAX_NAME_TRIM];
-
+    int iUserID;
     int iBanType;
     bool bBanCheating;
+    char szName[MAX_NAME_TRIM];
 
     void Clear()
     {
-        this.iClient = -1;
+        this.iUserID = -1;
         this.szName = "\0";
         this.iBanType = -1;
         this.bBanCheating = false;
     }
 }
 
-User g_iTarget;
+Target g_iTarget;
 
-enum BanType
+enum EBanType
 {
-    GLOBAL,
-    SILENCE,
-    VOICE,
-    CHAT
+    k_EBanTypeGlobal,
+    k_EBanTypeVoice,
+    k_EBanTypeChat
 }
 
-enum InfractionType
+enum EInfractionType
 {
-    KICKED,
-    SILENCED,
-    GAGGED,
-    MUTED
+    k_EInfractionTypeKick,
+    k_EInfractionTypeSilence,
+    k_EInfractionTypeGag,
+    k_EInfractionTypeMute
 }
 
-enum BanReasons
+enum EBanReason
 {
-    Cheating,
-    Exploiting,
-    Spamming,
-    Inappropriate,
-    Ignoring,
-    OwnReason,
+    k_EBanReasonCheat,
+    k_EBanReasonExploit,
+    k_EBanReasonSpam,
+    k_EBanReasonInappropriate,
+    k_EBanReasonIgnorance,
+    k_EBanReasonCustom,
 
-    BanReasonsTotal
+    k_EBanReasonTotal
 }
 
 char g_szBanReasons[][] =
@@ -64,14 +62,14 @@ char g_szBanReasons[][] =
     "Own Reason"
 };
 
-enum BanCheatingReasons
+enum ECheatingReason
 {
-    Aimbot,
-    AntiRecoil,
-    Wallhack,
-    MultiHack,
+    k_ECheatingReasonAimbot,
+    k_ECheatingReasonAntiRecoil,
+    k_ECheatingReasonWallhack,
+    k_ECheatingReasonMultiHack,
 
-    BanCheatingReasonsTotal
+    k_ECheatingReasonTotal
 }
 
 char g_szBanCheatingReasons[][] =
@@ -82,16 +80,16 @@ char g_szBanCheatingReasons[][] =
     "Multi-Hack"
 };
 
-enum BanTimes
+enum EBanTime
 {
-    Permanent,          // 0,
-    OneDay,
-    OneHour,            // 60,
-    OneWeek,            // 10080,
-    OneMonth,           // 43200,
-    OneYear,            // 525600,
+    k_EBanTimePermanent,       // 0,
+    k_EBanTimeDay,             // 1440
+    k_EBanTimeHour,            // 60,
+    k_EBanTimeWeek,            // 10080,
+    k_EBanTimeMonth,           // 43200,
+    k_EBanTimeYear,            // 525600,
 
-    BanTimesTotal
+    k_EBanTimeTotal
 }
 
 char g_szBanTimes[][] =
@@ -206,43 +204,43 @@ methodmap HYPPunish
 
         DateTime dTime = new DateTime(DateTime_Now);
 
-        switch (view_as<BanTimes>(iLength))
+        switch (view_as<EBanTime>(iLength))
         {
-            case view_as<BanTimes>(-1):
+            case view_as<EBanTime>(-1):
             {
                 jPlayer.Expires = 0;
             }
 
-            case Permanent:
+            case k_EBanTimePermanent:
             {
                 jPlayer.Expires = 0;
             }
 
-            case OneDay:
+            case k_EBanTimeDay:
             {
                 dTime += TimeSpan.FromDays(1);
                 jPlayer.Expires = dTime.Unix;
             }
 
-            case OneHour:
+            case k_EBanTimeHour:
             {
                 dTime += TimeSpan.FromHours(1);
                 jPlayer.Expires = dTime.Unix;
             }
 
-            case OneWeek:
+            case k_EBanTimeWeek:
             {
                 dTime += TimeSpan.FromDays(7);
                 jPlayer.Expires = dTime.Unix;
             }
 
-            case OneMonth:
+            case k_EBanTimeMonth:
             {
                 dTime += TimeSpan.FromDays(30);
                 jPlayer.Expires = dTime.Unix;
             }
 
-            case OneYear:
+            case k_EBanTimeYear:
             {
                 dTime += TimeSpan.FromDays(365);
                 jPlayer.Expires = dTime.Unix;

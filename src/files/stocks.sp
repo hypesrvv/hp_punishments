@@ -15,7 +15,7 @@ stock int FindPlayer(const char[] szPattern)
 	char szName[MAX_NAME_LENGTH];
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (!IsValidClient(i))
+		if (!IsClientInGame(i) || !IsClientConnected(i))
 		{
 			continue;
 		}

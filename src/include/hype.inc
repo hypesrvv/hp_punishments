@@ -7,39 +7,24 @@
 
 // META
 
-#define HP_PLUG "[HYPE] "
-#define HP_WEB "https://hypesrv.com"
-#define HP_URL "https://discord.gg/hypesrv"
+#define HP_PLUG  "[HYPESRV] "
+#define HP_WEB   "https://hypesrv.com"
+#define HP_URL   "https://discord.gg/hypesrv"
 #define HP_STEAM "https://steamcommunity.com/groups/hypesrv"
 
 // CHAT & MENUS
 
-#define TAG_MENU "HYPE | "
+#define TAG_HYPE_MENU "HypeSRV | "
 
-#define TAG_CLR " \x0BHype〡"
-#define TAG_NCLR "[HYPE]"
-#define TAG_CONSOLE "[{LIGHTBLUE}HYPE{DEFAULT}"
+#define TAG_HYPE_CLR     " \x0BHypeSRV〡"
+#define TAG_HYPE_NCLR    "[HypeSRV]"
+#define TAG_HYPE_CONSOLE "[{LIGHTBLUE}HypeSRV{DEFAULT}"
 
 // Coding
 
 #define MAX_STRING_LENGTH 250
+#define HYPESRV_IP "104.243.41.150"
 /* ───────────────────────STOCKS─────────────────────── */
-
-/**
-* Checks if the specified client index is valid or not.
-*
-* @param iClient			An entity index
-* @param bAllowBots			Set Bots to be accepted or not. Default: False
-* @return					Returns true if the specified entity index is a player connected, false otherwise.
-*/
-stock bool IsValidClient(int client, bool nobots = true)
-{
-	if (client <= 0 || client > MaxClients || !IsClientConnected(client) || (nobots && IsFakeClient(client)))
-	{
-		return false;
-	}
-	return IsClientInGame(client);
-}
 
 /**
 * Gets a real random integer.
@@ -48,13 +33,35 @@ stock bool IsValidClient(int client, bool nobots = true)
 * @param iMin				Maximum number value
 * @return					Returns a true random value from iMin to iMax.
 */
-stock int TryRandomInt(int iMin, int iMax) {
-
+stock int TryRandomInt(int iMin, int iMax)
+{
     int iRandom = GetURandomInt();
 
     if (iRandom == 0) iRandom++;
 
     return RoundToCeil(float(iRandom) / (float(2147483647) / float(iMax - iMin + 1))) + iMin - 1;
+}
+
+/**
+* Gets a ip address of server.
+*
+* @param bPort				Boolean value to include port
+* @return					Returns char string with ip.
+*/
+stock char[] GetServerIP(bool bPort = false)
+{
+    char szNetIP[32];
+
+    if (bPort)
+    {
+        FormatEx(szNetIP, sizeof(szNetIP), HYPESRV_IP ... ":%i", FindConVar("hostport").IntValue);
+    }
+    else
+    {
+        strcopy(szNetIP, sizeof(szNetIP), HYPESRV_IP);
+    }
+
+    return szNetIP;
 }
 
 stock char szConsoleColoursTags[][] =
@@ -70,6 +77,7 @@ stock char szConsoleColoursTags[][] =
 
 	// Colors
 
+	"{NORMAL}",
 	"{DEFAULT}",
 	"{BLACK}",
 	"{RED}",
@@ -120,6 +128,7 @@ stock char szConsoleColoursCodes[][] =
 	// Colors
 
 	"\x1b[0m",
+	"\x1b[0m",
 	"\x1b[30m",
 	"\x1b[31m",
 	"\x1b[32m",
@@ -166,4 +175,31 @@ stock void CPrintToServer(char[] szMessage, any ...)
 	}
 
 	PrintToServer(szOutput);
+}
+
+stock bool IsClientDonor(int iClient)
+{
+	return view_as<bool>((GetUserFlagBits(iClient) & ADMFLAG_RESERVATION));
+}
+
+stock bool IsClientAdmin(int iClient)
+{
+	return view_as<bool>((GetUserFlagBits(iClient) & ADMFLAG_BAN));
+}
+
+stock bool IsClientOwner(int iClient)
+{
+	return view_as<bool>((GetUserFlagBits(iClient) & ADMFLAG_ROOT));
+}
+
+stock char[] HPMenuTag(int iLen)
+{
+	char szLine[48];
+
+	for (int i = 0; i <= iLen; i++)
+	{
+		StrCat(szLine, sizeof(szLine), "—");
+	}
+
+	return szLine;
 }
