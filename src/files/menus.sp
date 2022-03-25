@@ -7,7 +7,7 @@ void DisplayAdminMenu(int iClient)
     hMenu.AddItem("0", "Ban Player");
     hMenu.AddItem("1", "Kick Player");
     hMenu.AddItem("2", "Communication");
-    hMenu.AddItem("3", "User Management");
+    hMenu.AddItem("3", "Player Management");
 
     hMenu.ExitButton = true;
     hMenu.Display(iClient, MENU_TIME_FOREVER);

@@ -28,6 +28,7 @@
 
 #define API_ENDPOINT ""
 
+#pragma dynamic 0
 #pragma semicolon 1
 #pragma newdecls required
 
@@ -65,10 +66,10 @@ public APLRes AskPluginLoad2(Handle hSelf, bool bLate, char[] szError, int iLeng
 	return APLRes_Success;
 }
 
-
 public Action Command_Admin(int iClient, int iArgs)
 {
 	DisplayAdminMenu(iClient);
+
 	return Plugin_Handled;
 }
 
@@ -77,6 +78,7 @@ public Action Command_Ban(int iClient, int iArgs)
 	if (iArgs < 2)
 	{
 		DisplayBanMenu(iClient);
+
 		return Plugin_Handled;
 	}
 
