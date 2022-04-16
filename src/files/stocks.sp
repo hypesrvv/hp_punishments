@@ -1,6 +1,6 @@
 stock void LogDebug(const char[] szFormat, any ...) {
 
-	char sBuffer[PLATFORM_MAX_PATH * 2],
+	decl char sBuffer[PLATFORM_MAX_PATH * 2],
 		sLogPath[PLATFORM_MAX_PATH];
 
 	VFormat(sBuffer, sizeof(sBuffer), szFormat, 2);

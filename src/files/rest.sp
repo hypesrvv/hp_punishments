@@ -1,6 +1,6 @@
-void HTTPRequest_OnPlayerBan(HTTPResponse hResponse, any data)
+void HTTPRequest_OnPlayerPunished(HTTPResponse hResponse, any data)
 {
-	if (hResponse.Status != HTTPStatus_Created)
+	if (hResponse.Status != HTTPStatus_OK)
 	{
 #if defined DEBUG
 		LogDebug("[HTTPRequest_OnPlayerBan] An error has occured");
@@ -9,12 +9,21 @@ void HTTPRequest_OnPlayerBan(HTTPResponse hResponse, any data)
 		return;
 	}
 
-	Forward_OnClientPunished(GetClientOfUserId(data));
+	decl char szLength[48];
+	decl char szReason[128];
+	JSONObject jObject = view_as<JSONObject>(hResponse.Data);
+
+	jObject.GetString("reason", szReason, sizeof(szReason));
+	jObject.GetString("expires_at", szLength, sizeof(szLength));
+
+	Forward_OnClientPunished(data, data, szReason, szLength, jObject.GetInt("type"));
 
 #if defined DEBUG
-	JSONObject jObject = view_as<JSONObject>(hResponse.Data);
-	char szBuffer[1024];
+	// JSONObject jbObject = view_as<JSONObject>(hResponse.Data);
+	decl char szBuffer[1024];
 	jObject.ToString(szBuffer, sizeof(szBuffer));
 	CPrintToServer("{LIGHTBLUE}%s", szBuffer);
 #endif
+
+	delete jObject;
 }

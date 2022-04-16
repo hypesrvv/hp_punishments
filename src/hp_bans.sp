@@ -5,6 +5,7 @@
 #include <cstrike>
 #include <ripext>
 #include <regex>
+#include <hype/core>
 #include <hype/bans>
 #include <hype>
 
@@ -26,7 +27,8 @@
 #define REGEX_MONTH "m|mo|month|months|"
 #define REGEX_HOUR "h|hr|hour|hours"
 
-#define API_ENDPOINT ""
+#define API_ENDPOINT "http://73.139.147.98:3000/private"
+#define ACCESS_TOKEN "YQ3J9s8pqnfrwQGJAeCjRNd4Bc6mWpPj"
 
 #pragma dynamic 0
 #pragma semicolon 1
@@ -40,16 +42,16 @@
 
 public Plugin myinfo =
 {
-	name = HP_PLUG ... "Bans",
+	name    = HP_PLUG ... "Bans",
 	author  = "DRANIX",
 	version = "0.2",
-	url = HP_URL
+	url     = HP_URL
 }
 
 public void OnPluginStart()
 {
-	RegConsoleCmd("sm_admin", Command_Admin);
-	RegConsoleCmd("sm_ban", Command_Ban);
+	RegAdminCmd("sm_admin", Command_Admin, ADMFLAG_BAN);
+	RegAdminCmd("sm_ban", Command_Ban, ADMFLAG_BAN);
 }
 
 public APLRes AskPluginLoad2(Handle hSelf, bool bLate, char[] szError, int iLength)
@@ -61,7 +63,11 @@ public APLRes AskPluginLoad2(Handle hSelf, bool bLate, char[] szError, int iLeng
 		return APLRes_Failure;
 	}
 
-	Core.fOnPlayerPunished = CreateGlobalForward("HP_OnClientPunished", ET_Ignore, Param_Cell);
+	Core.fOnPlayerPunished = CreateGlobalForward("HP_OnClientPunished", ET_Ignore, Param_Cell, Param_Cell, Param_String, Param_String, Param_Cell);
+
+	CreateNative("HP_PunishPlayer", Native_PunishPlayer);
+
+	RegPluginLibrary("Bans");
 
 	return APLRes_Success;
 }
@@ -84,9 +90,9 @@ public Action Command_Ban(int iClient, int iArgs)
 
 	decl char szArguments[128];
 
-	static const char szDay[][] = { "d", "day", "days" };
+	static const char szDay[][]   = { "d", "day", "days" };
 	static const char szMonth[][] = { "m", "month", "mo", "months" };
-	static const char szHour[][] = { "h", "hour", "hr", "hours" };
+	static const char szHour[][]  = { "h", "hour", "hr", "hours" };
 
 	GetCmdArgString(szArguments, sizeof(szArguments));
 
@@ -145,9 +151,7 @@ public Action Command_Ban(int iClient, int iArgs)
 		}
 	}
 
-	int iTarget = FindPlayer(szTarget);
-
-	HYPPunish(iTarget).Form(iClient, szReason, dTime.Unix);
+	HYPPunish(GetClientUserId(FindTarget(iClient, szTarget, false, false))).Form(GetClientUserId(iClient), szReason, dTime.Unix);
 
 	delete hRegex;
 
@@ -169,4 +173,3 @@ public Action Command_Ban(int iClient, int iArgs)
 // }
 
 // subtract 250 from string
-
