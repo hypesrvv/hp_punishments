@@ -1,5 +1,5 @@
 #include <sourcemod>
-#include <hype/bans>
+#include <hype/punishments>
 #include <hype>
 
 public void OnPluginStart()

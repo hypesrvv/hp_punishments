@@ -6,7 +6,7 @@
 #include <ripext>
 #include <regex>
 #include <hype/core>
-#include <hype/bans>
+#include <hype/punishments>
 #include <hype>
 
 #if !defined RSVP_COMPILER
@@ -42,7 +42,7 @@
 
 public Plugin myinfo =
 {
-	name    = HP_PLUG ... "Bans",
+	name    = HP_PLUG ... "Punishments",
 	author  = "DRANIX",
 	version = "0.2",
 	url     = HP_URL
@@ -67,7 +67,7 @@ public APLRes AskPluginLoad2(Handle hSelf, bool bLate, char[] szError, int iLeng
 
 	CreateNative("HP_PunishPlayer", Native_PunishPlayer);
 
-	RegPluginLibrary("Bans");
+	RegPluginLibrary("Punishments");
 
 	return APLRes_Success;
 }

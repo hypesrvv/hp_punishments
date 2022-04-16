@@ -1,7 +1,7 @@
-#if defined _bans_included
+#if defined _hp_punishments_included
     #endinput
 #endif
-#define _bans_included
+#define _hp_punishments_included
 
 enum EPunishmentType
 {
@@ -102,10 +102,10 @@ forward void HP_OnClientPunished(int iUserID, int iAdminID, const char[] szReaso
 */
 native any HP_PunishPlayer(int iUserID, int iAdminID, const char[] szReason, int iLegnth = 0, int iType);
 
-public SharedPlugin __pl_bans =
+public SharedPlugin __pl_hp_punishments =
 {
-	name = "Bans",
-	file = "hp_bans.smx",
+	name = "Punishments",
+	file = "hp_punishments.smx",
 #if defined REQUIRE_PLUGIN
 	required = 1,
 #else
@@ -114,7 +114,7 @@ public SharedPlugin __pl_bans =
 }
 
 #if !defined REQUIRE_PLUGIN
-public void __pl_bans_SetNTVOptional()
+public void __pl_hp_punishments_SetNTVOptional()
 {
 	MarkNativeAsOptional("HP_PunishPlayer");
 }

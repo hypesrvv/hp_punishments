@@ -1,4 +1,4 @@
 {
-    "sourcepawn.MainPath": "src\\hp_bans.sp",
+    "sourcepawn.MainPath": "src\\hp_punishments.sp.sp",
     "sourcepawn.outputDirectoryPath": "compiled/"
 }
