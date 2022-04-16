@@ -1,2 +1,2 @@
-# hp_bans
- [CSGO] Ban system
+# hp_punishments
+ [CSGO] Punishment system
