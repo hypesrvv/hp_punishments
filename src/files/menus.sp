@@ -1,11 +1,11 @@
 void DisplayAdminMenu(int iClient)
 {
-    Menu hMenu = new Menu(Build_AdminMainMenu);
+    Menu hMenu = new Menu(Menu_AdminMainHandler);
 
-    hMenu.SetTitle(TAG_HYPE_MENU ... "Admin Menu\n ");
+    hMenu.SetTitle(TAG_HYPESRV_MENU ... "Admin Menu\n ");
 
-    hMenu.AddItem("0", "Ban Player");
-    hMenu.AddItem("1", "Kick Player");
+    hMenu.AddItem("0", "Kick Player");
+    hMenu.AddItem("1", "Punish Player");
     hMenu.AddItem("2", "Communication");
     hMenu.AddItem("3", "Player Management");
 
@@ -13,7 +13,7 @@ void DisplayAdminMenu(int iClient)
     hMenu.Display(iClient, MENU_TIME_FOREVER);
 }
 
-public int Build_AdminMainMenu(Menu hMenu, MenuAction iAction, int iClient, int iOption)
+public int Menu_AdminMainHandler(Menu hMenu, MenuAction iAction, int iClient, int iOption)
 {
     switch (iAction)
     {
@@ -21,10 +21,10 @@ public int Build_AdminMainMenu(Menu hMenu, MenuAction iAction, int iClient, int 
         {
             switch (iOption)
             {
-                case 0: DisplayBanMenu(iClient);
-                case 1: DisplayKickMenu(iClient);
-                case 2: DisplayBanMenu(iClient); // DisplayCommunicationMenu(iClient);
-                case 3: DisplayBanMenu(iClient); // DisplayManagementMenu(iClient);
+                case 0: DisplayKickMenu(iClient);
+                case 1: DisplayPunishMenu(iClient);
+                case 2: DisplayPunishMenu(iClient); // DisplayCommunicationMenu(iClient);
+                case 3: DisplayPunishMenu(iClient); // DisplayManagementMenu(iClient);
             }
         }
 
@@ -37,13 +37,14 @@ public int Build_AdminMainMenu(Menu hMenu, MenuAction iAction, int iClient, int 
     return 0;
 }
 
-void DisplayBanMenu(int iClient)
+void DisplayPunishMenu(int iClient)
 {
     decl char szUserID[16];
     decl char szName[MAX_NAME_TRIM];
-    Menu hMenu = new Menu(Build_BanMenu);
 
-    hMenu.SetTitle(TAG_HYPE_MENU ... "Ban Player\n ");
+    Menu hMenu = new Menu(Menu_PunishHandler);
+
+    hMenu.SetTitle(TAG_HYPESRV_MENU ... "Punish Player\n ");
 
     for (int i = 1; i <= MaxClients; i++)
     {
@@ -61,7 +62,7 @@ void DisplayBanMenu(int iClient)
     hMenu.Display(iClient, MENU_TIME_FOREVER);
 }
 
-public int Build_BanMenu(Menu hMenu, MenuAction iAction, int iClient, int iOption)
+public int Menu_PunishHandler(Menu hMenu, MenuAction iAction, int iClient, int iOption)
 {
     switch (iAction)
     {
@@ -74,13 +75,15 @@ public int Build_BanMenu(Menu hMenu, MenuAction iAction, int iClient, int iOptio
             g_iTarget.iUserID = StringToInt(szUserID);
             strcopy(g_iTarget.szName, sizeof(ETarget::szName), szName);
 
-            DisplayBanReasonMenu(iClient);
+            DisplayPunishReasonMenu(iClient);
         }
 
         case MenuAction_Cancel:
         {
             if (iOption == MenuCancel_ExitBack)
             {
+                g_iTarget.Clear();
+
                 DisplayAdminMenu(iClient);
             }
         }
@@ -94,13 +97,14 @@ public int Build_BanMenu(Menu hMenu, MenuAction iAction, int iClient, int iOptio
     return 0;
 }
 
-void DisplayBanReasonMenu(int iClient)
+void DisplayPunishReasonMenu(int iClient)
 {
-    Menu hMenu = new Menu(Build_BanReasonsMenu);
-
-    hMenu.SetTitle(TAG_HYPE_MENU ... "Ban %s\n ", g_iTarget.szName);
-
     decl char szID[1];
+
+    Menu hMenu = new Menu(Menu_PunishReasonsHandler);
+
+    hMenu.SetTitle(TAG_HYPESRV_MENU ... "Punish %s\n ", g_iTarget.szName);
+
     for (int i = 0; i < view_as<int>(k_EBanReasonTotal); i++)
     {
         IntToString(i, szID, sizeof(szID));
@@ -112,7 +116,7 @@ void DisplayBanReasonMenu(int iClient)
     hMenu.Display(iClient, MENU_TIME_FOREVER);
 }
 
-public int Build_BanReasonsMenu(Menu hMenu, MenuAction iAction, int iClient, int iOption)
+public int Menu_PunishReasonsHandler(Menu hMenu, MenuAction iAction, int iClient, int iOption)
 {
     switch (iAction)
     {
@@ -120,24 +124,24 @@ public int Build_BanReasonsMenu(Menu hMenu, MenuAction iAction, int iClient, int
         {
             if (iOption == view_as<int>(k_EBanReasonCheat))
             {
-                g_iTarget.iBanType = 0;
-                g_iTarget.bBanCheating = true;
-                DisplayBanCheaterMenu(iClient);
+                g_iTarget.iPunishType = 0;
+                g_iTarget.bPunishCheating = true;
+                DisplayPunishCheaterMenu(iClient);
                 return 0;
             }
 
-            g_iTarget.iBanType = iOption;
-            g_iTarget.bBanCheating = false;
-            DisplayBanTimeMenu(iClient);
+            g_iTarget.iPunishType = iOption;
+            g_iTarget.bPunishCheating = false;
+            DisplayPunishTimeMenu(iClient);
         }
 
         case MenuAction_Cancel:
         {
             if (iOption == MenuCancel_ExitBack)
             {
-                g_iTarget.iBanType = -1;
-                g_iTarget.bBanCheating = false;
-                DisplayBanMenu(iClient);
+                g_iTarget.Clear();
+
+                DisplayPunishMenu(iClient);
             }
         }
 
@@ -150,13 +154,14 @@ public int Build_BanReasonsMenu(Menu hMenu, MenuAction iAction, int iClient, int
     return 0;
 }
 
-void DisplayBanTimeMenu(int iClient)
+void DisplayPunishTimeMenu(int iClient)
 {
-    Menu hMenu = new Menu(Build_BanTimeMenu);
-
-    hMenu.SetTitle(TAG_HYPE_MENU ... "Ban %s\n ", g_iTarget.szName);
-
     decl char szID[1];
+
+    Menu hMenu = new Menu(Menu_PunishTimeHandler);
+
+    hMenu.SetTitle(TAG_HYPESRV_MENU ... "Punish %s\n ", g_iTarget.szName);
+
     for (int i = 0; i < view_as<int>(k_EPunishmentTimeTotal); i++)
     {
         IntToString(i, szID, sizeof(szID));
@@ -168,27 +173,25 @@ void DisplayBanTimeMenu(int iClient)
     hMenu.Display(iClient, MENU_TIME_FOREVER);
 }
 
-public int Build_BanTimeMenu(Menu hMenu, MenuAction iAction, int iClient, int iOption)
+public int Menu_PunishTimeHandler(Menu hMenu, MenuAction iAction, int iClient, int iOption)
 {
     switch (iAction)
     {
         case MenuAction_Select:
         {
-            if (g_iTarget.bBanCheating)
+            if (g_iTarget.bPunishCheating)
             {
-                HYPPunish(g_iTarget.iUserID).Form(GetClientUserId(iClient), g_szBanCheatingReasons[g_iTarget.iBanType], iOption);
+                HYPPunish(g_iTarget.iUserID).Punish(GetClientUserId(iClient), g_szBanCheatingReasons[g_iTarget.iPunishType], iOption);
                 return 0;
             }
 
-            HYPPunish(g_iTarget.iUserID).Form(GetClientUserId(iClient), g_szBanReasons[g_iTarget.iBanType], iOption);
+            HYPPunish(g_iTarget.iUserID).Punish(GetClientUserId(iClient), g_szBanReasons[g_iTarget.iPunishType], iOption);
         }
 
         case MenuAction_Cancel:
         {
             if (iOption == MenuCancel_ExitBack)
-            {
-                DisplayBanReasonMenu(iClient);
-            }
+                DisplayPunishReasonMenu(iClient);
         }
 
         case MenuAction_End:
@@ -200,13 +203,14 @@ public int Build_BanTimeMenu(Menu hMenu, MenuAction iAction, int iClient, int iO
     return 0;
 }
 
-void DisplayBanCheaterMenu(int iClient)
+void DisplayPunishCheaterMenu(int iClient)
 {
-    Menu hMenu = new Menu(Build_BanCheaterMenu);
-
-    hMenu.SetTitle(TAG_HYPE_MENU ... "Ban %s\n ", g_iTarget.szName);
-
     decl char szID[1];
+
+    Menu hMenu = new Menu(Menu_PunishCheaterHandler);
+
+    hMenu.SetTitle(TAG_HYPESRV_MENU ... "Punish %s\n ", g_iTarget.szName);
+
     for (int i = 0; i < view_as<int>(k_ECheatingReasonTotal); i++)
     {
         IntToString(i, szID, sizeof(szID));
@@ -218,22 +222,20 @@ void DisplayBanCheaterMenu(int iClient)
     hMenu.Display(iClient, MENU_TIME_FOREVER);
 }
 
-public int Build_BanCheaterMenu(Menu hMenu, MenuAction iAction, int iClient, int iOption)
+public int Menu_PunishCheaterHandler(Menu hMenu, MenuAction iAction, int iClient, int iOption)
 {
     switch (iAction)
     {
         case MenuAction_Select:
         {
-            g_iTarget.iBanType = iOption;
-            DisplayBanTimeMenu(iClient);
+            g_iTarget.iPunishType = iOption;
+            DisplayPunishTimeMenu(iClient);
         }
 
         case MenuAction_Cancel:
         {
             if (iOption == MenuCancel_ExitBack)
-            {
-                DisplayBanReasonMenu(iClient);
-            }
+                DisplayPunishReasonMenu(iClient);
         }
 
         case MenuAction_End:
@@ -249,9 +251,10 @@ void DisplayKickMenu(int iClient)
 {
     decl char szUserID[16];
     decl char szName[MAX_NAME_TRIM];
+
     Menu hMenu = new Menu(Build_KickMenu);
 
-    hMenu.SetTitle(TAG_HYPE_MENU ... "Kick Player\n ");
+    hMenu.SetTitle(TAG_HYPESRV_MENU ... "Kick Player\n ");
 
     for (int i = 1; i <= MaxClients; i++)
     {
@@ -283,9 +286,7 @@ public int Build_KickMenu(Menu hMenu, MenuAction iAction, int iClient, int iOpti
         case MenuAction_Cancel:
         {
             if (iOption == MenuCancel_ExitBack)
-            {
                 DisplayAdminMenu(iClient);
-            }
         }
 
         case MenuAction_End:

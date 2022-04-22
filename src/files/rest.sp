@@ -1,4 +1,4 @@
-void HTTPRequest_OnPlayerPunished(HTTPResponse hResponse, any data)
+void HTTPRequest_OnPlayerPunished(HTTPResponse hResponse, int iData)
 {
 	if (hResponse.Status != HTTPStatus_OK)
 	{
@@ -9,21 +9,28 @@ void HTTPRequest_OnPlayerPunished(HTTPResponse hResponse, any data)
 		return;
 	}
 
+	int iAdmin = GetClientOfUserId(iData >> 4);
+	int iTarget = GetClientOfUserId(iData & 0xF);
+
+	// CPrintToServer("{LIGHTBLUE}%N(%X):%N(%X)", iAdmin, (iData >> 5), iTarget, (iData & 0xF));
+
 	decl char szLength[48];
 	decl char szReason[128];
-	JSONObject jObject = view_as<JSONObject>(hResponse.Data);
+	JSONObject jPunishment = view_as<JSONObject>(hResponse.Data);
 
-	jObject.GetString("reason", szReason, sizeof(szReason));
-	jObject.GetString("expires_at", szLength, sizeof(szLength));
+	jPunishment.GetString("reason", szReason, sizeof(szReason));
 
-	Forward_OnClientPunished(data, data, szReason, szLength, jObject.GetInt("type"));
+	if (!jPunishment.GetString("expires_at", szLength, sizeof(szLength)))
+		strcopy(szLength, sizeof(szLength), "Permanent");
+
+	Forward_OnClientPunished(iTarget, iAdmin, szReason, szLength, jPunishment.GetInt("type"));
 
 #if defined DEBUG
 	// JSONObject jbObject = view_as<JSONObject>(hResponse.Data);
 	decl char szBuffer[1024];
-	jObject.ToString(szBuffer, sizeof(szBuffer));
+	jPunishment.ToString(szBuffer, sizeof(szBuffer));
 	CPrintToServer("{LIGHTBLUE}%s", szBuffer);
 #endif
 
-	delete jObject;
+	delete jPunishment;
 }

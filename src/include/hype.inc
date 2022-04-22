@@ -1,38 +1,58 @@
-#if defined _hype_included
+#if defined _hypesrv_included
     #endinput
 #endif
-#define _hype_included
+#define _hypesrv_included
+
+#if !defined RSVP_COMPILER
+	#define decl static
+#endif
+
+#pragma newdecls required
 
 /* ─────────────────────DEFINITIONS──────────────────── */
 
-// META
+// META INFORMATION
 
-#define HP_PLUG  "[HYPESRV] "
-#define HP_WEB   "https://hypesrv.com"
-#define HP_URL   "https://discord.gg/hypesrv"
-#define HP_STEAM "https://steamcommunity.com/groups/hypesrv"
+#pragma deprecated Use HP_AUTHOR instead.
+#define HP_PLUG   "[HYPESRV] "
 
-// CHAT & MENUS
+#define HP_AUTHOR "HypeSRV"
+#define HP_WEB    "https://hypesrv.com"
+#define HP_URL    "https://discord.gg/hypesrv"
+#define HP_STEAM  "https://steamcommunity.com/groups/hypesrv"
 
-#define TAG_HYPE_MENU "HypeSRV | "
+// CHAT / MENU / CONSOLE
 
-#define TAG_HYPE_CLR     " \x0BHypeSRV〡"
-#define TAG_HYPE_NCLR    "[HypeSRV]"
-#define TAG_HYPE_CONSOLE "[{LIGHTBLUE}HypeSRV{DEFAULT}"
+#define TAG_HYPESRV_MENU    "HypeSRV | "
+#define TAG_HYPESRV_CLR     " \x0BHypeSRV〡"
+#define TAG_HYPESRV_NCLR    "[HypeSRV]"
+#define TAG_HYPESRV_CONSOLE "[{LIGHTBLUE}HypeSRV{DEFAULT}]"
 
 // Coding
 
-#define MAX_STRING_LENGTH 250
+#define MAX_STRING_LENGTH 1024
 #define HYPESRV_IP "104.243.41.150"
+
+stock char g_szTagConsole[78];
+stock char g_szPluginName[78];
+stock void OnHypeSRVInit()
+{
+	GetPluginFilename(GetMyHandle(), g_szTagConsole, sizeof(g_szTagConsole));
+	g_szTagConsole[FindCharInString(g_szTagConsole, '.')] = '\0';
+	strcopy(g_szPluginName, sizeof(g_szPluginName), g_szTagConsole);
+	Format(g_szTagConsole, sizeof(g_szTagConsole), TAG_HYPESRV_CONSOLE ... " '{LIME_BOLD}%s{DEFAULT}'", g_szTagConsole);
+}
+
 /* ───────────────────────STOCKS─────────────────────── */
 
 /**
-* Gets a real random integer.
-*
-* @param iMin				Minimum number value
-* @param iMin				Maximum number value
-* @return					Returns a true random value from iMin to iMax.
-*/
+ * Gets a real random integer.
+ *
+ * @param iMin				Minimum number value
+ * @param iMin				Maximum number value
+ *
+ * @return					Returns a true random value from iMin to iMax.
+ */
 stock int TryRandomInt(int iMin, int iMax)
 {
     int iRandom = GetURandomInt();
@@ -43,23 +63,20 @@ stock int TryRandomInt(int iMin, int iMax)
 }
 
 /**
-* Gets a ip address of server.
-*
-* @param bPort				Boolean value to include port
-* @return					Returns char string with ip.
-*/
+ * Gets the ip address of the server.
+ *
+ * @param bPort				Boolean value to include port
+ *
+ * @return					Returns char string with ip.
+ */
 stock char[] GetServerIP(bool bPort = false)
 {
-    char szNetIP[32];
+    decl char szNetIP[32];
 
     if (bPort)
-    {
         FormatEx(szNetIP, sizeof(szNetIP), HYPESRV_IP ... ":%i", FindConVar("hostport").IntValue);
-    }
     else
-    {
         strcopy(szNetIP, sizeof(szNetIP), HYPESRV_IP);
-    }
 
     return szNetIP;
 }
@@ -166,15 +183,78 @@ stock char szConsoleColoursCodes[][] =
 
 stock void CPrintToServer(char[] szMessage, any ...)
 {
-	char szOutput[PLATFORM_MAX_PATH];
+	decl char szOutput[PLATFORM_MAX_PATH];
 	VFormat(szOutput, sizeof(szOutput), szMessage, 2);
 
 	for (int i = 0; i < sizeof(szConsoleColoursTags); i++)
-	{
 		ReplaceString(szOutput, 250, szConsoleColoursTags[i], szConsoleColoursCodes[i]);
-	}
 
 	PrintToServer(szOutput);
+}
+
+stock void LogDebug(const char[] szMessage, any ...)
+{
+	decl char szTime[48];
+	decl char szPath[PLATFORM_MAX_PATH];
+	decl char szBuffer[PLATFORM_MAX_PATH * 2];
+
+	VFormat(szBuffer, sizeof(szBuffer), szMessage, 2);
+
+	BuildPath(Path_SM, szPath, sizeof(szPath), "logs/%s.log", g_szPluginName);
+
+	Format(szBuffer, sizeof(szBuffer), "%s {GREY}%s", g_szTagConsole, szBuffer);
+
+	CPrintToServer(szBuffer);
+
+	FormatTime(szTime, sizeof(szTime), "L %Y/%m/%d - %I:%M:%S ");
+	Format(szBuffer, sizeof(szBuffer), "%s%s", szTime, szBuffer);
+
+	for (int i = 0; i < sizeof(szConsoleColoursCodes); i++)
+		ReplaceString(szBuffer, sizeof(szBuffer), szConsoleColoursTags[i], NULL_STRING);
+
+	File hFile = OpenFile(szPath, "a+");
+	hFile.WriteLine(szBuffer);
+	hFile.Flush();
+
+	delete hFile;
+}
+
+/**
+ * Wraps ProcessTargetString()
+ *
+ * @param iClient        Client who issued command
+ * @param szTarget       Client's target argument
+ * @param bNoBots        Optional. Set to true if bots should NOT be targetted
+ * @param bImmunity      Optional. Set to false to ignore target immunity.
+ * @return               Index of target client, or -1 on error.
+ */
+stock int FindPlayer(const int iClient, const char[] szTarget, bool bNoBots = false, bool bImmunity = true)
+{
+	decl char szTargetName[MAX_TARGET_LENGTH];
+	int iTargetList[1], iTargetCount;
+	bool bTnIsMl;
+
+	int iFlags = COMMAND_FILTER_NO_MULTI;
+	if (bNoBots)
+		iFlags |= COMMAND_FILTER_NO_BOTS;
+
+	if (!bImmunity)
+		iFlags |= COMMAND_FILTER_NO_IMMUNITY;
+
+	if ((iTargetCount = ProcessTargetString(
+			szTarget,
+			iClient,
+			iTargetList,
+			1,
+			iFlags,
+			szTargetName,
+			sizeof(szTargetName),
+			bTnIsMl)) > 0)
+	{
+		return iTargetList[0];
+	}
+
+	return -1;
 }
 
 stock bool IsClientDonor(int iClient)
@@ -194,12 +274,10 @@ stock bool IsClientOwner(int iClient)
 
 stock char[] HPMenuTag(int iLen)
 {
-	char szLine[48];
+	decl char szLine[48];
 
 	for (int i = 0; i <= iLen; i++)
-	{
 		StrCat(szLine, sizeof(szLine), "—");
-	}
 
 	return szLine;
 }

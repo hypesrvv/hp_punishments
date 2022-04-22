@@ -3,23 +3,32 @@
 #endif
 #define _hp_core_included
 
+enum EPower
+{
+	k_EPowerNone,
+	k_EPowerModerator,
+	k_EPowerAdmin,
+	k_EPowerOwner
+}
+
 /**
- *	Called on client data fetched.
+ *	Called when the core is fully loaded.
+ */
+forward void HP_OnCoreEngineReady();
+
+/**
+ *	Called when the client is ready.
  *
  *	@param iUserID			Client userid.
- *
- *	@noreturn
  */
 forward void HP_OnClientConnected(const int iUserID);
 
 /**
- * Gets ServerID from Core.
- *
- * @return        ServerID.
+ *	Gets the Server ID from Core.
  */
 native int HP_GetServerID();
 
-public SharedPlugin __pl_core =
+public SharedPlugin __pl_hp_core =
 {
 	name = "Core",
 	file = "hp_core.smx",
@@ -31,7 +40,7 @@ public SharedPlugin __pl_core =
 }
 
 #if !defined REQUIRE_PLUGIN
-public void __pl_core_SetNTVOptional()
+public void __pl_hp_core_SetNTVOptional()
 {
 	MarkNativeAsOptional("HP_GetServerID");
 }

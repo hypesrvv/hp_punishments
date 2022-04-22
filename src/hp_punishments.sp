@@ -16,8 +16,8 @@
 #define DEBUG
 #define MAX_NAME_TRIM 16
 
-#define TAG_BANS_CONSOLE "[{GREEN}BANS{WHITE}]"
-#define TAG_BANS " \x0FBans〡"
+#define TAG_BANS_CONSOLE "[{GREEN}PUNISHMENTS{WHITE}]"
+#define TAG_BANS " \x0FPunishments〡"
 
 #define TIME_HOUR  1
 #define TIME_DAY   24
@@ -44,12 +44,14 @@ public Plugin myinfo =
 {
 	name    = HP_PLUG ... "Punishments",
 	author  = "DRANIX",
-	version = "0.2",
+	version = "0.3",
 	url     = HP_URL
 }
 
 public void OnPluginStart()
 {
+	OnHypeSRVInit();
+
 	RegAdminCmd("sm_admin", Command_Admin, ADMFLAG_BAN);
 	RegAdminCmd("sm_ban", Command_Ban, ADMFLAG_BAN);
 }
@@ -83,11 +85,18 @@ public Action Command_Ban(int iClient, int iArgs)
 {
 	if (iArgs < 2)
 	{
-		DisplayBanMenu(iClient);
+		DisplayPunishMenu(iClient);
 
 		return Plugin_Handled;
 	}
 
+	int iTarget;
+	int iCaptures;
+	int iBanLength;
+	decl char szTarget[32];
+	decl char szReason[64];
+	decl char szBanNumber[5];
+	decl char szBanPeriod[4];
 	decl char szArguments[128];
 
 	static const char szDay[][]   = { "d", "day", "days" };
@@ -98,29 +107,15 @@ public Action Command_Ban(int iClient, int iArgs)
 
 	Regex hRegex = new Regex("^([\\w\\d]+)\\s([1-9][0-9]{0,1})(" ... REGEX_DAY ... REGEX_MONTH ... REGEX_HOUR ... ")\\s(.*)$", PCRE_CASELESS);
 
-	int iCaptures = hRegex.Match(szArguments);
+	iCaptures = hRegex.Match(szArguments);
 
-	if (iCaptures == -1)
-	{
-		ReplyToCommand(iClient, "[SM] Invalid arguments");
-		return Plugin_Handled;
-	}
-
-	decl char szTarget[32];
 	hRegex.GetSubString(1, szTarget, sizeof(szTarget), 0);
-
-	decl char szBanNumber[5];
 	hRegex.GetSubString(2, szBanNumber, sizeof(szBanNumber), 0);
-	int iBanNumber = StringToInt(szBanNumber);
-
-	decl char szBanPeriod[4];
+	iBanLength = StringToInt(szBanNumber);
 	hRegex.GetSubString(3, szBanPeriod, sizeof(szBanPeriod), 0);
 
-	decl char szReason[64];
 	if (iCaptures == 5)
-	{
 		hRegex.GetSubString(4, szReason, sizeof(szReason), 0);
-	}
 
 	DateTime dTime = new DateTime(DateTime_Now);
 
@@ -128,7 +123,7 @@ public Action Command_Ban(int iClient, int iArgs)
 	{
 		if (!strcmp(szBanPeriod, szDay[i], false))
 		{
-			dTime += TimeSpan.FromDays(iBanNumber);
+			dTime += TimeSpan.FromDays(iBanLength);
 			break;
 		}
 	}
@@ -137,7 +132,7 @@ public Action Command_Ban(int iClient, int iArgs)
 	{
 		if (!strcmp(szBanPeriod, szMonth[i], false))
 		{
-			dTime += TimeSpan.FromHours(iBanNumber * TIME_MONTH);
+			dTime += TimeSpan.FromHours(iBanLength * TIME_MONTH);
 			break;
 		}
 	}
@@ -146,12 +141,20 @@ public Action Command_Ban(int iClient, int iArgs)
 	{
 		if (!strcmp(szBanPeriod, szHour[i], false))
 		{
-			dTime += TimeSpan.FromHours(iBanNumber);
+			dTime += TimeSpan.FromHours(iBanLength);
 			break;
 		}
 	}
 
-	HYPPunish(GetClientUserId(FindTarget(iClient, szTarget, false, false))).Form(GetClientUserId(iClient), szReason, dTime.Unix);
+	iTarget = FindPlayer(iClient, szTarget, false, false);
+
+	if (!IsClientInGame(iTarget))
+	{
+		PrintToChat(iClient, "%s\x08Client \"\x04%s\x08\" not found or has been disconected", TAG_HYPESRV_CLR, szTarget);
+		return Plugin_Handled;
+	}
+
+	HYPPunish(GetClientUserId(iTarget)).Punish(GetClientUserId(iClient), szReason, dTime.Unix);
 
 	delete hRegex;
 

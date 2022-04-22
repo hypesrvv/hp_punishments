@@ -11,7 +11,7 @@ void Forward_OnClientPunished(const int iUserID, const int iAdminID, const char[
 	Call_Finish();
 
 #if defined DEBUG
-	CPrintToServer("%s Forward '{YELLOW}FR_OnCoreIsReady{WHITE}' called.", TAG_BANS_CONSOLE);
+	CPrintToServer("%s Forward '{YELLOW}HP_OnClientPunished{WHITE}' called.", TAG_BANS_CONSOLE);
 #endif
 }
 
@@ -28,11 +28,9 @@ void Native_PunishPlayer(Handle hPlugin, int iParams)
 	int iType = GetNativeCell(5);
 
 	if (iLength != -1)
-		HYPPunish(iUserID).Form(iAdminID, szReason, iLength, iType);
+		HYPPunish(iUserID).Punish(iAdminID, szReason, iLength, iType);
 	else
-		HYPPunish(iUserID).Form(iAdminID, szReason, 0, iType);
-
-	// Forward_OnClientPunished(iUserID, iAdminID, szReason, iLength, iType);
+		HYPPunish(iUserID).Punish(iAdminID, szReason, 0, iType);
 
 #if defined DEBUG
 	CPrintToServer("%s Native '{YELLOW}Native_PunishPlayer{WHITE}' called. [DATA]: {PURPLE}iUserID \"%i\", iAdminID \"%i\", szReason \"%s\", iLength \"%i\", iType \"%i\"", TAG_BANS_CONSOLE, iUserID, iAdminID, szReason, iLength, iType);

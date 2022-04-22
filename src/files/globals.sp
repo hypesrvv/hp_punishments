@@ -7,101 +7,26 @@ enum struct Global
 
 Global Core;
 
+#define HP_PUNISHMENTS_ADMIN 1
+#define HP_PUNISHMENTS_TARGET 2
+
 enum struct ETarget
 {
     int iUserID;
-    int iBanType;
-    bool bBanCheating;
+    int iPunishType;
+    bool bPunishCheating;
     char szName[MAX_NAME_TRIM];
 
     void Clear()
     {
         this.iUserID = -1;
         this.szName = "\0";
-        this.iBanType = -1;
-        this.bBanCheating = false;
+        this.iPunishType = -1;
+        this.bPunishCheating = false;
     }
 }
 
 ETarget g_iTarget;
-
-// enum EBanType
-// {
-//     k_EBanTypeGlobal,
-//     k_EBanTypeVoice,
-//     k_EBanTypeChat
-// }
-
-// enum EPunishmentType
-// {
-//     k_EPunishmentTypeBan,
-//     k_EPunishmentTypeKick,
-//     k_EPunishmentTypeSilence,
-//     k_EPunishmentTypeGag,
-//     k_EPunishmentTypeMute
-// }
-
-// enum EBanReason
-// {
-//     k_EBanReasonCheat,
-//     k_EBanReasonExploit,
-//     k_EBanReasonSpam,
-//     k_EBanReasonInappropriate,
-//     k_EBanReasonIgnorance,
-//     k_EBanReasonCustom,
-
-//     k_EBanReasonTotal
-// }
-
-// char g_szBanReasons[][] =
-// {
-//     "Cheating",
-//     "Exploiting",
-//     "Spamming",
-//     "Inappropiate Behaviour",
-//     "Ignoring Admins",
-//     "Own Reason"
-// };
-
-// enum ECheatingReason
-// {
-//     k_ECheatingReasonAimbot,
-//     k_ECheatingReasonAntiRecoil,
-//     k_ECheatingReasonWallhack,
-//     k_ECheatingReasonMultiHack,
-
-//     k_ECheatingReasonTotal
-// }
-
-// char g_szBanCheatingReasons[][] =
-// {
-//     "Aimbot",
-//     "Anti Recoil",
-//     "Wall Hack",
-//     "Multi-Hack"
-// };
-
-// enum EBanTime
-// {
-//     k_EBanTimePermanent,       // 0,
-//     k_EBanTimeDay,             // 1440
-//     k_EBanTimeHour,            // 60,
-//     k_EBanTimeWeek,            // 10080,
-//     k_EBanTimeMonth,           // 43200,
-//     k_EBanTimeYear,            // 525600,
-
-//     k_EBanTimeTotal
-// }
-
-// char g_szBanTimes[][] =
-// {
-//     "Permanent",
-//     "One Day",
-//     "One Hour",
-//     "One Week",
-//     "One Month",
-//     "One Year"
-// };
 
 methodmap HYPPlayer < JSONObject
 {
@@ -201,13 +126,13 @@ methodmap HYPPunish
         }
     }
 
-    public void Form(int iAdminID, const char[] szReason, int iLength = -1, int iType = 0)
+    public void Punish(int iAdminID, const char[] szReason, int iLength = -1, int iType = 0)
     {
         int iClient = GetClientOfUserId(this.iUserID);
         int iAdmin = GetClientOfUserId(iAdminID);
 
         if (IsPlayerAlive(iClient))
-            // ForcePlayerSuicide(iClient);
+            ForcePlayerSuicide(iClient);
 
         PrintToChatAll("%s\x09%N \x08was banned from the server for \x0F%s", TAG_BANS, iClient, szReason);
 
@@ -217,7 +142,7 @@ methodmap HYPPunish
 
         HYPPlayer jPlayer = new HYPPlayer();
 
-        jPlayer.iAccountID = GetSteamAccountID(iClient);
+        jPlayer.iAccountID = GetSteamAccountID(iAdmin);
 
         if (iAdmin == 0)
             jPlayer.iAdminID = 0;
@@ -231,8 +156,8 @@ methodmap HYPPunish
 
         switch (view_as<EPunishmentTime>(iLength))
         {
-            case view_as<EPunishmentTime>(-1): jPlayer.iExpires = 0;
-            case k_EPunishmentTimePermanent: jPlayer.iExpires = 0;
+            case view_as<EPunishmentTime>(-1): {}
+            case k_EPunishmentTimePermanent: {}
 
             case k_EPunishmentTimeDay:
             {
@@ -270,14 +195,14 @@ methodmap HYPPunish
         jPlayer.iType = iType;
 
 #if defined DEBUG
-        char szBuffer[1024];
-        jPlayer.ToString(szBuffer, sizeof(szBuffer));
-        CPrintToServer("{LIGHTBLUE}%s", szBuffer);
+        decl char szJson[1024];
+        jPlayer.ToString(szJson, sizeof(szJson));
+        CPrintToServer("{LIGHTBLUE}%s", szJson);
 #endif
 
-        hRequest.Post(jPlayer, HTTPRequest_OnPlayerPunished, GetClientUserId(iClient));
+        hRequest.Post(jPlayer, HTTPRequest_OnPlayerPunished, ((iAdminID << 4) | this.iUserID));
 
-        // KickClient(iClient, szReason);
+        KickClient(iClient, szReason);
 
         delete jPlayer;
     }
