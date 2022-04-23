@@ -1,8 +1,8 @@
-void Forward_OnClientPunished(const int iUserID, const int iAdminID, const char[] szReason, const char[] szLength, int iType)
+void Forward_OnClientPunished(const int iTargetID, const int iAdminID, const char[] szReason, const char[] szLength, int iType)
 {
 	Call_StartForward(Core.fOnPlayerPunished);
 
-	Call_PushCell(iUserID);
+	Call_PushCell(iTargetID);
 	Call_PushCell(iAdminID);
 	Call_PushString(szReason);
 	Call_PushString(szLength);
@@ -11,7 +11,7 @@ void Forward_OnClientPunished(const int iUserID, const int iAdminID, const char[
 	Call_Finish();
 
 #if defined DEBUG
-	CPrintToServer("%s Forward '{YELLOW}HP_OnClientPunished{WHITE}' called.", TAG_BANS_CONSOLE);
+	LogDebug("Forward '{YELLOW}HP_OnClientPunished{WHITE}' called.");
 #endif
 }
 
@@ -33,6 +33,6 @@ void Native_PunishPlayer(Handle hPlugin, int iParams)
 		HYPPunish(iUserID).Punish(iAdminID, szReason, 0, iType);
 
 #if defined DEBUG
-	CPrintToServer("%s Native '{YELLOW}Native_PunishPlayer{WHITE}' called. [DATA]: {PURPLE}iUserID \"%i\", iAdminID \"%i\", szReason \"%s\", iLength \"%i\", iType \"%i\"", TAG_BANS_CONSOLE, iUserID, iAdminID, szReason, iLength, iType);
+	LogDebug("Native {YELLOW}HP_PunishPlayer{WHITE} called. [DATA]: {PURPLE}iUserID \"%i\", iAdminID \"%i\", szReason \"%s\", iLength \"%i\", iType \"%i\"", iUserID, iAdminID, szReason, iLength, iType);
 #endif
 }

@@ -20,7 +20,7 @@ enum struct ETarget
     void Clear()
     {
         this.iUserID = -1;
-        this.szName = "\0";
+        this.szName = NULL_STRING;
         this.iPunishType = -1;
         this.bPunishCheating = false;
     }
@@ -28,14 +28,62 @@ enum struct ETarget
 
 ETarget g_iTarget;
 
-methodmap HYPPlayer < JSONObject
+enum struct EPunishment
 {
-    public HYPPlayer()
+    int iTargetID;
+    int iAdminID;
+    char szTargetName[MAX_NAME_TRIM];
+    char szAdminName[MAX_NAME_TRIM];
+    char szReason[128];
+    char szLength[128];
+    int iType;
+    int iBanID;
+
+    void Clear()
     {
-        return view_as<HYPPlayer>(new JSONObject());
+        this.iTargetID = -1;
+        this.iAdminID = -1;
+        this.szTargetName = NULL_STRING;
+        this.szAdminName = NULL_STRING;
+        this.szReason = NULL_STRING;
+        this.szLength = NULL_STRING;
+        this.iType = 0;
+        this.iBanID = -1;
     }
 
-    property int iAccountID
+    bool Populate(int iTargetID, int iAdminID, JSON jData)
+    {
+        JSONObject jPunishment = view_as<JSONObject>(jData);
+
+        this.iTargetID = iTargetID;
+        this.iAdminID = iAdminID;
+
+        GetClientName(iTargetID, this.szTargetName, sizeof(this.szTargetName));
+        GetClientName(iAdminID, this.szAdminName, sizeof(this.szAdminName));
+
+        if (!jPunishment.GetString("reason", this.szReason, sizeof(this.szReason)))
+            strcopy(this.szReason, sizeof(this.szReason), NULL_STRING);
+
+        if (!jPunishment.GetString("expires_at", this.szLength, sizeof(this.szLength)))
+            strcopy(this.szLength, sizeof(this.szLength), "Permanent");
+
+        this.iType = jPunishment.GetInt("type");
+        this.iBanID = jPunishment.GetInt("id");
+
+        return true;
+    }
+}
+
+EPunishment g_EPunishment;
+
+methodmap Punishment < JSONObject
+{
+    public Punishment()
+    {
+        return view_as<Punishment>(new JSONObject());
+    }
+
+    property int iTargetID
     {
         public get()
         {
@@ -126,31 +174,23 @@ methodmap HYPPunish
         }
     }
 
-    public void Punish(int iAdminID, const char[] szReason, int iLength = -1, int iType = 0)
+    public void Punish(const int iAdmin, const char[] szReason, int iLength = -1, int iType = 0)
     {
-        int iClient = GetClientOfUserId(this.iUserID);
-        int iAdmin = GetClientOfUserId(iAdminID);
-
-        if (IsPlayerAlive(iClient))
-            ForcePlayerSuicide(iClient);
-
-        PrintToChatAll("%s\x09%N \x08was banned from the server for \x0F%s", TAG_BANS, iClient, szReason);
-
         hRequest = new HTTPRequest(API_ENDPOINT ... "/punishment");
         hRequest.SetHeader("Content-Type", "application/json");
         hRequest.SetHeader("Authorization", ACCESS_TOKEN);
 
-        HYPPlayer jPlayer = new HYPPlayer();
+        Punishment jPunishment = new Punishment();
 
-        jPlayer.iAccountID = GetSteamAccountID(iAdmin);
+        jPunishment.iTargetID = GetSteamAccountID(this.iUserID);
 
         if (iAdmin == 0)
-            jPlayer.iAdminID = 0;
+            jPunishment.iAdminID = 0;
         else
-            jPlayer.iAdminID = GetSteamAccountID(iAdmin);
+            jPunishment.iAdminID = GetSteamAccountID(iAdmin);
 
-        jPlayer.iServerID = HP_GetServerID();
-        jPlayer.SetReason(szReason);
+        jPunishment.iServerID = HP_GetServerID();
+        jPunishment.SetReason(szReason);
 
         DateTime dTime = new DateTime(DateTime_Now);
 
@@ -162,49 +202,51 @@ methodmap HYPPunish
             case k_EPunishmentTimeDay:
             {
                 dTime += TimeSpan.FromDays(1);
-                jPlayer.iExpires = dTime.Unix;
+                jPunishment.iExpires = dTime.Unix;
             }
 
             case k_EPunishmentTimeHour:
             {
                 dTime += TimeSpan.FromHours(1);
-                jPlayer.iExpires = dTime.Unix;
+                jPunishment.iExpires = dTime.Unix;
             }
 
             case k_EPunishmentTimeWeek:
             {
                 dTime += TimeSpan.FromDays(7);
-                jPlayer.iExpires = dTime.Unix;
+                jPunishment.iExpires = dTime.Unix;
             }
 
             case k_EPunishmentTimeMonth:
             {
                 dTime += TimeSpan.FromDays(30);
-                jPlayer.iExpires = dTime.Unix;
+                jPunishment.iExpires = dTime.Unix;
             }
 
             case k_EPunishmentTimeYear:
             {
                 dTime += TimeSpan.FromDays(365);
-                jPlayer.iExpires = dTime.Unix;
+                jPunishment.iExpires = dTime.Unix;
             }
 
-            default: jPlayer.iExpires = iLength;
+            default: jPunishment.iExpires = iLength;
         }
 
-        jPlayer.iType = iType;
+        jPunishment.iType = iType;
 
 #if defined DEBUG
         decl char szJson[1024];
-        jPlayer.ToString(szJson, sizeof(szJson));
-        CPrintToServer("{LIGHTBLUE}%s", szJson);
+        jPunishment.ToString(szJson, sizeof(szJson));
+        LogDebug("{YELLOW}HYPPunish::Punish {GREY}%s", szJson);
 #endif
 
-        hRequest.Post(jPlayer, HTTPRequest_OnPlayerPunished, ((iAdminID << 4) | this.iUserID));
+        DataPack hPack = new DataPack();
+        hPack.WriteCell(GetClientUserId(this.iUserID));
+        hPack.WriteCell(GetClientUserId(iAdmin));
 
-        KickClient(iClient, szReason);
+        hRequest.Post(jPunishment, HTTPRequest_OnPlayerPunished, hPack);
 
-        delete jPlayer;
+        delete jPunishment;
     }
 
     public void Kick(int iAdmin, const char[] szReason)
@@ -216,15 +258,15 @@ methodmap HYPPunish
 
         PrintToChatAll("%s\x09%N \x08was kicked from the server %s", TAG_BANS, iClient, szReason);
 
-        HYPPlayer jPlayer = new HYPPlayer();
+        Punishment jPunishment = new Punishment();
 
-        jPlayer.iAccountID = GetSteamAccountID(iClient);
-        jPlayer.iAdminID = GetSteamAccountID(iAdmin);
-        jPlayer.SetReason(szReason);
+        jPunishment.iTargetID = GetSteamAccountID(this.iUserID);
+        jPunishment.iAdminID = GetSteamAccountID(iAdmin);
+        jPunishment.SetReason(szReason);
 
 #if defined DEBUG
         char szBuffer[1024];
-        jPlayer.ToString(szBuffer, sizeof(szBuffer));
+        jPunishment.ToString(szBuffer, sizeof(szBuffer));
         CPrintToServer("{LIGHTBLUE}%s", szBuffer);
 #endif
 
@@ -233,7 +275,7 @@ methodmap HYPPunish
 
         // KickClient(this.index, szReason);
 
-        delete jPlayer;
+        delete jPunishment;
     }
 }
 

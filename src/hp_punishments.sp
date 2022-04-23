@@ -30,6 +30,8 @@
 #define API_ENDPOINT "http://73.139.147.98:3000/private"
 #define ACCESS_TOKEN "YQ3J9s8pqnfrwQGJAeCjRNd4Bc6mWpPj"
 
+#define PUNISHMENT_FOOTER "\n\nWebsite: " ... HP_WEB ... "\nDiscord: " ... HP_URL ... "\nEmail: " ... HP_EMAIL
+
 #pragma dynamic 0
 #pragma semicolon 1
 #pragma newdecls required
@@ -154,7 +156,7 @@ public Action Command_Ban(int iClient, int iArgs)
 		return Plugin_Handled;
 	}
 
-	HYPPunish(GetClientUserId(iTarget)).Punish(GetClientUserId(iClient), szReason, dTime.Unix);
+	HYPPunish(iTarget).Punish(iClient, szReason, dTime.Unix);
 
 	delete hRegex;
 

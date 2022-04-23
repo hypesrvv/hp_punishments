@@ -20,6 +20,7 @@
 #define HP_WEB    "https://hypesrv.com"
 #define HP_URL    "https://discord.gg/hypesrv"
 #define HP_STEAM  "https://steamcommunity.com/groups/hypesrv"
+#define HP_EMAIL  "Support@hypesrv.com"
 
 // CHAT / MENU / CONSOLE
 
