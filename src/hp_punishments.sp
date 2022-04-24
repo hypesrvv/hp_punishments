@@ -3,6 +3,7 @@
 #include <sdkhooks>
 #include <sdktools>
 #include <cstrike>
+#include <anymap>
 #include <ripext>
 #include <regex>
 #include <hype/core>
@@ -31,6 +32,8 @@
 #define ACCESS_TOKEN "YQ3J9s8pqnfrwQGJAeCjRNd4Bc6mWpPj"
 
 #define PUNISHMENT_FOOTER "\n\nWebsite: " ... HP_WEB ... "\nDiscord: " ... HP_URL ... "\nEmail: " ... HP_EMAIL
+
+#define MAX_PUNISHMENTS_LENGTH 128
 
 #pragma dynamic 0
 #pragma semicolon 1
@@ -86,7 +89,27 @@ public Action Command_Admin(int iClient, int iArgs)
 public void HP_OnClientConnected(int iUserID)
 {
 	int iClient = GetClientOfUserId(iUserID);
-	g_iTarget[iClient].Clear();
+
+	if (IsClientStaff(iClient))
+		g_ETarget[iClient].Clear();
+
+	g_EUser[iClient].Init(iClient);
+
+	decl char szURL[128];
+	FormatEx(szURL, sizeof(szURL), API_ENDPOINT ... "/user/%i/punishments/active", g_EUser[iClient].iAccountID);
+
+	hRequest = new HTTPRequest(szURL);
+	hRequest.SetHeader("Authorization", ACCESS_TOKEN);
+
+	hRequest.Get(HTTPRequest_OnPunishmentsFetched, iUserID);
+}
+
+public void OnClientDisconnect(int iClient)
+{
+	if (IsClientStaff(iClient))
+		g_ETarget[iClient].Clear();
+
+	g_EUser[iClient].Clear();
 }
 
 public Action Command_Ban(int iClient, int iArgs)
@@ -162,7 +185,7 @@ public Action Command_Ban(int iClient, int iArgs)
 		return Plugin_Handled;
 	}
 
-	HYPPunish(iTarget).Punish(iClient, szReason, dTime.Unix);
+	Punish(iTarget).Execute(iClient, szReason, dTime.Unix);
 
 	delete hRegex;
 

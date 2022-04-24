@@ -1,3 +1,62 @@
+stock void CreatePunishmentExpireTimer(EPunishmentType EType, int iClient, float iRemainingTime)
+{
+    DataPack hPack;
+
+    hPack.WriteCell(view_as<int>(EType));
+    hPack.WriteCell(GetClientUserId(iClient));
+
+    if (iRemainingTime)
+        g_EUser[iClient].hPunishmentTimer = CreateDataTimer(iRemainingTime, Timer_PunishmentExpire, hPack);
+    else
+        g_EUser[iClient].hPunishmentTimer = CreateDataTimer((iRemainingTime * 60), Timer_PunishmentExpire, hPack);
+}
+
+stock Action Timer_PunishmentExpire(Handle hTimer, DataPack hPack)
+{
+    hPack.Reset();
+
+    EPunishmentType EType = view_as<EPunishmentType>(hPack.ReadCell());
+    int iClient = GetClientOfUserId(hPack.ReadCell());
+
+    switch (EType)
+    {
+		case k_EPunishmentTypeSilence:
+		{
+
+		}
+
+		case k_EPunishmentTypeGag:
+		{
+
+		}
+
+		case k_EPunishmentTypeMute: UnmutePlayer(iClient);
+    }
+
+    delete hPack;
+    hTimer = null;
+    return Plugin_Stop;
+}
+
+
+stock char[] IntToStr(const int szInteger)
+{
+    decl char z[10];
+    FormatEx(z, 10, "%i", szInteger);
+    return z;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 stock void MutePlayer(int iClient)
 {
     SetClientListeningFlags(iClient, VOICE_MUTED);

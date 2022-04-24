@@ -72,7 +72,7 @@ public int Menu_PunishHandler(Menu hMenu, MenuAction iAction, int iClient, int i
             decl char szName[MAX_NAME_TRIM];
             hMenu.GetItem(iOption, szUserID, sizeof(szUserID), _, szName, sizeof(szName));
 
-            g_iTarget[iClient].SetupTarget(StringToInt(szUserID), szName);
+            g_ETarget[iClient].SetupTarget(StringToInt(szUserID), szName);
 
             DisplayPunishReasonMenu(iClient);
         }
@@ -81,7 +81,7 @@ public int Menu_PunishHandler(Menu hMenu, MenuAction iAction, int iClient, int i
         {
             if (iOption == MenuCancel_ExitBack)
             {
-                g_iTarget[iClient].Clear();
+                g_ETarget[iClient].Clear();
 
                 DisplayAdminMenu(iClient);
             }
@@ -102,7 +102,7 @@ void DisplayPunishReasonMenu(int iClient)
 
     Menu hMenu = new Menu(Menu_PunishReasonsHandler);
 
-    hMenu.SetTitle(TAG_HYPESRV_MENU ... "Punish %s\n ", g_iTarget[iClient].szName);
+    hMenu.SetTitle(TAG_HYPESRV_MENU ... "Punish %s\n ", g_ETarget[iClient].szName);
 
     for (int i = 0; i < view_as<int>(k_EBanReasonTotal); i++)
     {
@@ -123,14 +123,14 @@ public int Menu_PunishReasonsHandler(Menu hMenu, MenuAction iAction, int iClient
         {
             if (iOption == view_as<int>(k_EBanReasonCheat))
             {
-                g_iTarget[iClient].iPunishType = 0;
-                g_iTarget[iClient].bPunishCheating = true;
+                g_ETarget[iClient].iPunishType = 0;
+                g_ETarget[iClient].bPunishCheating = true;
                 DisplayPunishCheaterMenu(iClient);
                 return 0;
             }
 
-            g_iTarget[iClient].iPunishType = iOption;
-            g_iTarget[iClient].bPunishCheating = false;
+            g_ETarget[iClient].iPunishType = iOption;
+            g_ETarget[iClient].bPunishCheating = false;
             DisplayPunishTimeMenu(iClient);
         }
 
@@ -138,7 +138,7 @@ public int Menu_PunishReasonsHandler(Menu hMenu, MenuAction iAction, int iClient
         {
             if (iOption == MenuCancel_ExitBack)
             {
-                g_iTarget[iClient].Clear();
+                g_ETarget[iClient].Clear();
 
                 DisplayPunishMenu(iClient);
             }
@@ -155,17 +155,12 @@ public int Menu_PunishReasonsHandler(Menu hMenu, MenuAction iAction, int iClient
 
 void DisplayPunishTimeMenu(int iClient)
 {
-    decl char szID[1];
-
     Menu hMenu = new Menu(Menu_PunishTimeHandler);
 
-    hMenu.SetTitle(TAG_HYPESRV_MENU ... "Punish %s\n ", g_iTarget[iClient].szName);
+    hMenu.SetTitle(TAG_HYPESRV_MENU ... "Punish %s\n ", g_ETarget[iClient].szName);
 
     for (int i = 0; i < view_as<int>(k_EPunishmentTimeTotal); i++)
-    {
-        IntToString(i, szID, sizeof(szID));
-        hMenu.AddItem(szID, g_szBanTimes[i]);
-    }
+        hMenu.AddItem(IntToStr(i), g_szBanTimes[i]);
 
     hMenu.ExitButton = true;
     hMenu.ExitBackButton = true;
@@ -178,13 +173,13 @@ public int Menu_PunishTimeHandler(Menu hMenu, MenuAction iAction, int iClient, i
     {
         case MenuAction_Select:
         {
-            if (g_iTarget[iClient].bPunishCheating)
+            if (g_ETarget[iClient].bPunishCheating)
             {
-                HYPPunish(GetClientOfUserId(g_iTarget[iClient].iUserID)).Punish(iClient, g_szBanCheatingReasons[g_iTarget[iClient].iPunishType], iOption);
+                Punish(GetClientOfUserId(g_ETarget[iClient].iUserID)).Execute(iClient, g_szBanCheatingReasons[g_ETarget[iClient].iPunishType], iOption);
                 return 0;
             }
 
-            HYPPunish(GetClientOfUserId(g_iTarget[iClient].iUserID)).Punish(iClient, g_szBanReasons[g_iTarget[iClient].iPunishType], iOption);
+            Punish(GetClientOfUserId(g_ETarget[iClient].iUserID)).Execute(iClient, g_szBanReasons[g_ETarget[iClient].iPunishType], iOption);
         }
 
         case MenuAction_Cancel:
@@ -208,7 +203,7 @@ void DisplayPunishCheaterMenu(int iClient)
 
     Menu hMenu = new Menu(Menu_PunishCheaterHandler);
 
-    hMenu.SetTitle(TAG_HYPESRV_MENU ... "Punish %s\n ", g_iTarget[iClient].szName);
+    hMenu.SetTitle(TAG_HYPESRV_MENU ... "Punish %s\n ", g_ETarget[iClient].szName);
 
     for (int i = 0; i < view_as<int>(k_ECheatingReasonTotal); i++)
     {
@@ -227,7 +222,7 @@ public int Menu_PunishCheaterHandler(Menu hMenu, MenuAction iAction, int iClient
     {
         case MenuAction_Select:
         {
-            g_iTarget[iClient].iPunishType = iOption;
+            g_ETarget[iClient].iPunishType = iOption;
             DisplayPunishTimeMenu(iClient);
         }
 

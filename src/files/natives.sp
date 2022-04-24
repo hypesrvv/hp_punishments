@@ -28,9 +28,9 @@ void Native_PunishPlayer(Handle hPlugin, int iParams)
 	int iType = GetNativeCell(5);
 
 	if (iLength != -1)
-		HYPPunish(iTarget).Punish(iAdmin, szReason, iLength, iType);
+		Punish(iTarget).Execute(iAdmin, szReason, iLength, iType);
 	else
-		HYPPunish(iTarget).Punish(iAdmin, szReason, 0, iType);
+		Punish(iTarget).Execute(iAdmin, szReason, 0, iType);
 
 #if defined DEBUG
 	LogDebug("Native {YELLOW}HP_PunishPlayer{GREY} accessed [DATA]: {PURPLE}iUserID \"%i\", iAdminID \"%i\", szReason \"%s\", iLength \"%i\", iType \"%i\"", iTarget, iAdmin, szReason, iLength, iType);

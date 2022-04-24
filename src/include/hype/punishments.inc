@@ -79,22 +79,22 @@ stock char g_szBanTimes[][] =
 /**
  *	Called once a client is punnished
  *
- *	@param iTargetID		Client UserID.
- *	@param iAdminID			Admin Client UserID. ( Use 0 for Console )
- *	@param szReason			Punishment Reason.
- *	@param szLength			Punishment szLegnth.
- *  @param iBanID           Punishment ID.
+ *	@param iTargetID		Target client userid.
+ *	@param iAdminID			Admin client userid.
+ *	@param szReason			Punishment reason.
+ *	@param szLength			Punishment length.
+ *  @param iBanID           Punishment id.
 */
 forward void HP_OnClientPunished(const int iTargetID, const int iAdminID, const char[] szReason, const char[] szLength, const int iBanID);
 
 /**
  *	Native for punishing players.
  *
- *	@param iTarget		    Client index UserID.
- *	@param iAdmin			Admin Client index iAdmin. ( Use 0 for Console )
- *	@param szReason			Punishment Reason.
- *	@param iLength			Punishment Legnth.
- *	@param iType			Punishment Type.
+ *	@param iTarget		    Target client index.
+ *	@param iAdmin			Admin client index. ( Use 0 for Console )
+ *	@param szReason			Punishment reason.
+ *	@param iLength			Punishment legnth.
+ *	@param iType			Punishment type.
 */
 native any HP_PunishPlayer(int iTarget, int iAdmin, const char[] szReason, int iLegnth = -1, int iType = 0);
 

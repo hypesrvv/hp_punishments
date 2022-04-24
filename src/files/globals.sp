@@ -10,82 +10,6 @@ Global Core;
 #define HP_PUNISHMENTS_ADMIN 1
 #define HP_PUNISHMENTS_TARGET 2
 
-enum struct ETarget
-{
-    int iUserID;
-    int iPunishType;
-    bool bPunishCheating;
-    char szName[MAX_NAME_TRIM];
-
-    void Clear()
-    {
-        this.iUserID = -1;
-        this.iPunishType = -1;
-        this.bPunishCheating = false;
-        this.szName = NULL_STRING;
-    }
-
-    void SetupTarget(const int iUserID, const char[] szName)
-    {
-        this.iUserID = iUserID;
-        strcopy(this.szName, sizeof(this.szName), szName);
-    }
-}
-
-ETarget g_iTarget[MAXPLAYERS + 1];
-
-enum struct EPunishment
-{
-    int iTargetID;
-    int iAdminID;
-    char szTargetName[MAX_NAME_TRIM];
-    char szAdminName[MAX_NAME_TRIM];
-    char szReason[128];
-    char szLength[128];
-    int iType;
-    int iBanID;
-
-    void Clear()
-    {
-        this.iTargetID = -1;
-        this.iAdminID = -1;
-        this.szTargetName = NULL_STRING;
-        this.szAdminName = NULL_STRING;
-        this.szReason = NULL_STRING;
-        this.szLength = NULL_STRING;
-        this.iType = 0;
-        this.iBanID = -1;
-    }
-
-    bool Populate(const int iTargetID, const int iAdminID, JSON jData)
-    {
-        JSONObject jPunishment = view_as<JSONObject>(jData);
-
-        this.iTargetID = iTargetID;
-        this.iAdminID = iAdminID;
-
-        GetClientName(GetClientOfUserId(iTargetID), this.szTargetName, sizeof(this.szTargetName));
-
-        if (iAdminID != 0)
-            GetClientName(GetClientOfUserId(iAdminID), this.szAdminName, sizeof(this.szAdminName));
-        else
-            strcopy(this.szAdminName, sizeof(this.szAdminName), "Console");
-
-        if (!jPunishment.GetString("reason", this.szReason, sizeof(this.szReason)))
-            strcopy(this.szReason, sizeof(this.szReason), NULL_STRING);
-
-        if (!jPunishment.GetString("expires_at", this.szLength, sizeof(this.szLength)))
-            strcopy(this.szLength, sizeof(this.szLength), "Permanent");
-
-        this.iType = jPunishment.GetInt("type");
-        this.iBanID = jPunishment.GetInt("id");
-
-        return true;
-    }
-}
-
-EPunishment g_EPunishment;
-
 methodmap Punishment < JSONObject
 {
     public Punishment()
@@ -169,11 +93,153 @@ methodmap Punishment < JSONObject
     }
 }
 
-methodmap HYPPunish
+enum struct ETarget
 {
-    public HYPPunish(const int Index)
+    int iUserID;
+    int iPunishType;
+    bool bPunishCheating;
+    char szName[MAX_NAME_TRIM];
+
+    void Clear()
     {
-        return view_as<HYPPunish>(Index);
+        this.iUserID = -1;
+        this.iPunishType = -1;
+        this.bPunishCheating = false;
+        this.szName = NULL_STRING;
+    }
+
+    void SetupTarget(const int iUserID, const char[] szName)
+    {
+        this.iUserID = iUserID;
+        strcopy(this.szName, sizeof(this.szName), szName);
+    }
+}
+
+ETarget g_ETarget[MAXPLAYERS + 1];
+
+enum struct EPunishment
+{
+    int iTargetID;
+    int iAdminID;
+    char szTargetName[MAX_NAME_TRIM];
+    char szAdminName[MAX_NAME_TRIM];
+    char szReason[128];
+    char szLength[128];
+    char szDate[32];
+    int iType;
+    int iID;
+
+    void Clear()
+    {
+        this.iTargetID = -1;
+        this.iAdminID = -1;
+        this.szTargetName = NULL_STRING;
+        this.szAdminName = NULL_STRING;
+        this.szReason = NULL_STRING;
+        this.szLength = NULL_STRING;
+        this.iType = 0;
+        this.iID = -1;
+    }
+
+    bool Populate(const int iTargetID, const int iAdminID, JSON jData)
+    {
+        JSONObject jPunishment = view_as<JSONObject>(jData);
+
+        this.iTargetID = iTargetID;
+        this.iAdminID = iAdminID;
+
+        GetClientName(GetClientOfUserId(iTargetID), this.szTargetName, sizeof(this.szTargetName));
+
+        if (iAdminID != 0)
+            GetClientName(GetClientOfUserId(iAdminID), this.szAdminName, sizeof(this.szAdminName));
+        else
+            strcopy(this.szAdminName, sizeof(this.szAdminName), "Console");
+
+        if (!jPunishment.GetString("reason", this.szReason, sizeof(this.szReason)))
+            strcopy(this.szReason, sizeof(this.szReason), NULL_STRING);
+
+        if (!jPunishment.GetString("expires_at", this.szLength, sizeof(this.szLength)))
+            strcopy(this.szLength, sizeof(this.szLength), "Permanent");
+
+        this.iType = jPunishment.GetInt("type");
+        this.iID = jPunishment.GetInt("id");
+
+        return true;
+    }
+}
+
+EPunishment g_EPunishment;
+
+enum struct EUser
+{
+    int iClient;
+    int iAccountID;
+    bool bIsSilenced;
+    bool bIsGagged;
+    bool bIsMuted;
+    int iPunishmentCount;
+    AnyMap ALPunishments;
+    Handle hPunishmentTimer;
+
+    void Clear()
+    {
+        this.iClient = -1;
+        this.bIsSilenced = false;
+        this.bIsGagged = false;
+        this.bIsMuted = false;
+        this.iPunishmentCount = -1;
+        delete this.ALPunishments;
+    }
+
+    bool Init(int iClient)
+    {
+        this.iClient = iClient;
+        this.ALPunishments = new AnyMap();
+        this.iAccountID = GetSteamAccountID(this.iClient);
+    }
+
+    bool LoadPunishments(JSONArray jData)
+    {
+        JSONObject jPunishment;
+
+        EPunishment PunishmentData;
+
+        this.iPunishmentCount = 0;
+
+        this.ALPunishments.Clear();
+
+        decl char szBuffer[128];
+        for (int i = jData.Length - 1; i >= 0; i--)
+        {
+            jPunishment = view_as<JSONObject>(jData.Get(i));
+
+            PunishmentData.iTargetID = jPunishment.GetInt("recipient_id");
+            PunishmentData.iAdminID = jPunishment.GetInt("issuer_id");
+
+            jPunishment.GetString("reason", szBuffer, sizeof(szBuffer));
+            strcopy(PunishmentData.szReason, sizeof(PunishmentData.szReason), szBuffer);
+
+            jPunishment.GetString("created_at", PunishmentData.szLength, sizeof(EPunishment::szLength));
+
+            PunishmentData.iType = jPunishment.GetInt("type");
+            PunishmentData.iID = jPunishment.GetInt("id");
+
+            this.iPunishmentCount++;
+
+            this.ALPunishments.SetArray(i, PunishmentData, sizeof(PunishmentData));
+        }
+
+        return true;
+    }
+}
+
+EUser g_EUser[MAXPLAYERS + 1];
+
+methodmap Punish
+{
+    public Punish(const int Index)
+    {
+        return view_as<Punish>(Index);
     }
 
     property int iUserID
@@ -184,7 +250,7 @@ methodmap HYPPunish
         }
     }
 
-    public void Punish(const int iAdmin, const char[] szReason, int iLength = -1, int iType = 0)
+    public void Execute(const int iAdmin, const char[] szReason, int iLength = -1, int iType = 0)
     {
         hRequest = new HTTPRequest(API_ENDPOINT ... "/punishment");
         hRequest.SetHeader("Content-Type", "application/json");
@@ -253,43 +319,13 @@ methodmap HYPPunish
         DataPack hPack = new DataPack();
         hPack.WriteCell(GetClientUserId(this.iUserID));
 
-        if (iAdmin == 0)
-            hPack.WriteCell(0);
-        else
+        if (iAdmin != 0)
             hPack.WriteCell(GetClientUserId(iAdmin));
+        else
+            hPack.WriteCell(0);
 
         hRequest.Post(jPunishment, HTTPRequest_OnPlayerPunished, hPack);
 
         delete jPunishment;
     }
-
-    public void Kick(int iAdmin, const char[] szReason)
-    {
-        int iClient = GetClientOfUserId(this.iUserID);
-
-        if (IsPlayerAlive(iClient))
-            // ForcePlayerSuicide(iClient);
-
-        PrintToChatAll("%s\x09%N \x08was kicked from the server %s", TAG_BANS, iClient, szReason);
-
-        Punishment jPunishment = new Punishment();
-
-        jPunishment.iTargetID = GetSteamAccountID(this.iUserID);
-        jPunishment.iAdminID = GetSteamAccountID(iAdmin);
-        jPunishment.SetReason(szReason);
-
-#if defined DEBUG
-        char szBuffer[1024];
-        jPunishment.ToString(szBuffer, sizeof(szBuffer));
-        CPrintToServer("{LIGHTBLUE}%s", szBuffer);
-#endif
-
-        // hRequest = new HTTPRequest(API_ENDPOINT... "/bans/create");
-        // hRequest.Post(jPlayer, HTTPRequest_OnPlayerBan, GetClientOfUserId(this.index));
-
-        // KickClient(this.index, szReason);
-
-        delete jPunishment;
-    }
 }
-

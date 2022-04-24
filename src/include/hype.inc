@@ -274,7 +274,7 @@ stock bool IsClientOwner(int iClient)
 
 stock bool IsClientStaff(int iClient)
 {
-	return view_as<bool>((GetUserFlagBits(iClient) & (ADMFLAG_KICK|ADMFLAG_BAN|ADMFLAG_ROOT)))
+	return view_as<bool>((GetUserFlagBits(iClient) & (ADMFLAG_KICK|ADMFLAG_BAN|ADMFLAG_ROOT)));
 }
 
 stock char[] HPMenuTag(int iLen)
