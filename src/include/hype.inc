@@ -13,8 +13,7 @@
 
 // META INFORMATION
 
-#pragma deprecated Use HP_AUTHOR instead.
-#define HP_PLUG   "[HYPESRV] "
+#define HP_PLUG   "[HS] "
 
 #define HP_AUTHOR "HypeSRV"
 #define HP_WEB    "https://hypesrv.com"
@@ -271,6 +270,11 @@ stock bool IsClientAdmin(int iClient)
 stock bool IsClientOwner(int iClient)
 {
 	return view_as<bool>((GetUserFlagBits(iClient) & ADMFLAG_ROOT));
+}
+
+stock bool IsClientStaff(int iClient)
+{
+	return view_as<bool>((GetUserFlagBits(iClient) & (ADMFLAG_KICK|ADMFLAG_BAN|ADMFLAG_ROOT)))
 }
 
 stock char[] HPMenuTag(int iLen)

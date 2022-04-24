@@ -21,7 +21,7 @@ forward void HP_OnCoreEngineReady();
  *
  *	@param iUserID			Client userid.
  */
-forward void HP_OnClientConnected(const int iUserID);
+forward void HP_OnClientConnected(int iUserID);
 
 /**
  *	Gets the Server ID from Core.

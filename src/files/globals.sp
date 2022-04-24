@@ -20,13 +20,19 @@ enum struct ETarget
     void Clear()
     {
         this.iUserID = -1;
-        this.szName = NULL_STRING;
         this.iPunishType = -1;
         this.bPunishCheating = false;
+        this.szName = NULL_STRING;
+    }
+
+    void SetupTarget(const int iUserID, const char[] szName)
+    {
+        this.iUserID = iUserID;
+        strcopy(this.szName, sizeof(this.szName), szName);
     }
 }
 
-ETarget g_iTarget;
+ETarget g_iTarget[MAXPLAYERS + 1];
 
 enum struct EPunishment
 {
@@ -51,15 +57,19 @@ enum struct EPunishment
         this.iBanID = -1;
     }
 
-    bool Populate(int iTargetID, int iAdminID, JSON jData)
+    bool Populate(const int iTargetID, const int iAdminID, JSON jData)
     {
         JSONObject jPunishment = view_as<JSONObject>(jData);
 
         this.iTargetID = iTargetID;
         this.iAdminID = iAdminID;
 
-        GetClientName(iTargetID, this.szTargetName, sizeof(this.szTargetName));
-        GetClientName(iAdminID, this.szAdminName, sizeof(this.szAdminName));
+        GetClientName(GetClientOfUserId(iTargetID), this.szTargetName, sizeof(this.szTargetName));
+
+        if (iAdminID != 0)
+            GetClientName(GetClientOfUserId(iAdminID), this.szAdminName, sizeof(this.szAdminName));
+        else
+            strcopy(this.szAdminName, sizeof(this.szAdminName), "Console");
 
         if (!jPunishment.GetString("reason", this.szReason, sizeof(this.szReason)))
             strcopy(this.szReason, sizeof(this.szReason), NULL_STRING);
@@ -237,12 +247,16 @@ methodmap HYPPunish
 #if defined DEBUG
         decl char szJson[1024];
         jPunishment.ToString(szJson, sizeof(szJson));
-        LogDebug("{YELLOW}HYPPunish::Punish {GREY}%s", szJson);
+        LogDebug("Function {YELLOW}HYPPunish::Punish {GREY}%s", szJson);
 #endif
 
         DataPack hPack = new DataPack();
         hPack.WriteCell(GetClientUserId(this.iUserID));
-        hPack.WriteCell(GetClientUserId(iAdmin));
+
+        if (iAdmin == 0)
+            hPack.WriteCell(0);
+        else
+            hPack.WriteCell(GetClientUserId(iAdmin));
 
         hRequest.Post(jPunishment, HTTPRequest_OnPlayerPunished, hPack);
 

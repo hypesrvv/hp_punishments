@@ -10,23 +10,35 @@ void HTTPRequest_OnPlayerPunished(HTTPResponse hResponse, DataPack hPack)
 
 			g_EPunishment.Clear();
 
-			if (g_EPunishment.Populate(hPack.ReadCell(), hPack.ReadCell(), hResponse.Data))
-			{
-				int iTarget = GetClientOfUserId(g_EPunishment.iTargetID);
+			int iTargetID = hPack.ReadCell();
+			int iAdminID = hPack.ReadCell();
 
-				if (IsPlayerAlive(iTarget))
-					ForcePlayerSuicide(iTarget);
+			if (g_EPunishment.Populate(iTargetID, iAdminID, hResponse.Data))
+			{
+				Forward_OnClientPunished(g_EPunishment.iTargetID, g_EPunishment.iAdminID, g_EPunishment.szReason, g_EPunishment.szLength, g_EPunishment.iBanID);
+
+				int iTarget = GetClientOfUserId(g_EPunishment.iTargetID);
 
 				switch (view_as<EPunishmentType>(g_EPunishment.iType))
 				{
 					case k_EPunishmentTypeBan:
 					{
+						if (IsPlayerAlive(iTarget))
+							ForcePlayerSuicide(iTarget);
 
+						PunishPrint("%s\x09%s \x08was banned from the server for \x0F%s", TAG_BANS, g_EPunishment.szTargetName, g_EPunishment.szReason);
+
+						KickClient(iTarget, "You′ve been permanetly banned from " ... HP_AUTHOR ... " Community servers\n\nReason: %s%s", g_EPunishment.szReason, PUNISHMENT_FOOTER);
 					}
 
 					case k_EPunishmentTypeKick:
 					{
+						if (IsPlayerAlive(iTarget))
+							ForcePlayerSuicide(iTarget);
 
+						PunishPrint("%s\x09%s \x08was kicked from the server for %s", TAG_BANS, g_EPunishment.szTargetName, g_EPunishment.szReason);
+
+						KickClient(iTarget, "You′ve been kicked from the " ... HP_AUTHOR ... " server\n\n %s", PUNISHMENT_FOOTER);
 					}
 
 					case k_EPunishmentTypeSilence:
@@ -41,10 +53,12 @@ void HTTPRequest_OnPlayerPunished(HTTPResponse hResponse, DataPack hPack)
 
 					case k_EPunishmentTypeMute:
 					{
-
+						MutePlayer(iTarget);
 					}
 				}
 			}
+
+			delete hPack;
 
 			// enum EPunishmentType
 			// {

@@ -83,6 +83,12 @@ public Action Command_Admin(int iClient, int iArgs)
 	return Plugin_Handled;
 }
 
+public void HP_OnClientConnected(int iUserID)
+{
+	int iClient = GetClientOfUserId(iUserID);
+	g_iTarget[iClient].Clear();
+}
+
 public Action Command_Ban(int iClient, int iArgs)
 {
 	if (iArgs < 2)

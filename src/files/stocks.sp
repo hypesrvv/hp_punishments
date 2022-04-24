@@ -1,31 +1,37 @@
-// stock void LogDebug(const char[] szFormat, any ...) {
+stock void MutePlayer(int iClient)
+{
+    SetClientListeningFlags(iClient, VOICE_MUTED);
+}
 
-// 	decl char sBuffer[PLATFORM_MAX_PATH * 2],
-// 		sLogPath[PLATFORM_MAX_PATH];
+stock void UnmutePlayer(int iClient)
+{
+    switch (FindConVar("sv_deadtalk").IntValue)
+    {
+        case 1: if (!IsPlayerAlive(iClient)) SetClientListeningFlags(iClient, VOICE_LISTENALL);
+        case 2: if (!IsPlayerAlive(iClient)) SetClientListeningFlags(iClient, VOICE_TEAM);
+        default: SetClientListeningFlags(iClient, VOICE_NORMAL);
+    }
+}
 
-// 	VFormat(sBuffer, sizeof(sBuffer), szFormat, 2);
+stock void PunishPrint(const char[] szMessage, any ...)
+{
+    decl char szBuffer[64];
+    decl char szPublicOutPut[PLATFORM_MAX_PATH];
+    decl char szOutput[PLATFORM_MAX_PATH];
+    VFormat(szPublicOutPut, sizeof(szPublicOutPut), szMessage, 2);
+    VFormat(szOutput, sizeof(szOutput), szMessage, 2);
 
-// 	BuildPath(Path_SM, sLogPath, sizeof(sLogPath), "logs/hp_bans.log");
+    FormatEx(szBuffer, sizeof(szBuffer), " \x08by \x0B%s", g_EPunishment.szAdminName);
+    StrCat(szOutput, sizeof(szOutput), szBuffer);
 
-// 	LogToFile(sLogPath, sBuffer);
-// }
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (!IsClientConnected(i) && !IsClientInGame(i))
+            continue;
 
-// stock int FindPlayer(const char[] szPattern)
-// {
-// 	char szName[MAX_NAME_LENGTH];
-// 	for (int i = 1; i <= MaxClients; i++)
-// 	{
-// 		if (!IsClientInGame(i) || !IsClientConnected(i))
-// 		{
-// 			continue;
-// 		}
-
-// 		GetClientName(i, szName, sizeof(szName));
-
-// 		if (StrEqual(szPattern, szName, false))
-// 		{
-// 			return i;
-// 		}
-// 	}
-// 	return -1;
-// }
+        if (IsClientStaff(i))
+            PrintToChat(i, szOutput);
+        else
+            PrintToChat(i, szPublicOutPut);
+    }
+}
