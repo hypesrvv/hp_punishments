@@ -96,14 +96,20 @@ methodmap Punishment < JSONObject
 enum struct ETarget
 {
     int iUserID;
+    int iReason;
     int iPunishType;
+    bool bOwnReason;
+    bool bPunishComms;
     bool bPunishCheating;
     char szName[MAX_NAME_TRIM];
+    char szReason[MAX_REASON_LEGNTH];
 
     void Clear()
     {
         this.iUserID = -1;
+        this.iReason = -1;
         this.iPunishType = -1;
+        this.bPunishComms = false;
         this.bPunishCheating = false;
         this.szName = NULL_STRING;
     }
@@ -137,6 +143,7 @@ enum struct EPunishment
         this.szAdminName = NULL_STRING;
         this.szReason = NULL_STRING;
         this.szLength = NULL_STRING;
+        this.szDate = NULL_STRING;
         this.iType = 0;
         this.iID = -1;
     }
@@ -160,6 +167,9 @@ enum struct EPunishment
 
         if (!jPunishment.GetString("expires_at", this.szLength, sizeof(this.szLength)))
             strcopy(this.szLength, sizeof(this.szLength), "Permanent");
+
+        if (!jPunishment.GetString("created_at", this.szDate, sizeof(this.szDate)))
+            strcopy(this.szDate, sizeof(this.szDate), NULL_STRING);
 
         this.iType = jPunishment.GetInt("type");
         this.iID = jPunishment.GetInt("id");
@@ -189,6 +199,7 @@ enum struct EUser
         this.bIsMuted = false;
         this.iPunishmentCount = -1;
         delete this.ALPunishments;
+        delete this.hPunishmentTimer;
     }
 
     bool Init(int iClient)
@@ -208,18 +219,20 @@ enum struct EUser
 
         this.ALPunishments.Clear();
 
-        decl char szBuffer[128];
-        for (int i = jData.Length - 1; i >= 0; i--)
+        for (int i = (jData.Length - 1); i >= 0; i--)
         {
             jPunishment = view_as<JSONObject>(jData.Get(i));
 
             PunishmentData.iTargetID = jPunishment.GetInt("recipient_id");
             PunishmentData.iAdminID = jPunishment.GetInt("issuer_id");
 
-            jPunishment.GetString("reason", szBuffer, sizeof(szBuffer));
-            strcopy(PunishmentData.szReason, sizeof(PunishmentData.szReason), szBuffer);
+            if (!jPunishment.GetString("reason", PunishmentData.szReason, sizeof(PunishmentData.szReason)))
+                strcopy(PunishmentData.szReason, sizeof(PunishmentData.szReason), NULL_STRING);
 
-            jPunishment.GetString("created_at", PunishmentData.szLength, sizeof(EPunishment::szLength));
+            jPunishment.GetString("created_at", PunishmentData.szDate, sizeof(PunishmentData.szDate));
+
+            if (!jPunishment.GetString("expires_at", PunishmentData.szLength, sizeof(PunishmentData.szLength)))
+                strcopy(PunishmentData.szLength, sizeof(PunishmentData.szLength), NULL_STRING);
 
             PunishmentData.iType = jPunishment.GetInt("type");
             PunishmentData.iID = jPunishment.GetInt("id");
@@ -242,7 +255,7 @@ methodmap Punish
         return view_as<Punish>(Index);
     }
 
-    property int iUserID
+    property int iTarget
     {
         public get()
         {
@@ -250,15 +263,15 @@ methodmap Punish
         }
     }
 
-    public void Execute(const int iAdmin, const char[] szReason, int iLength = -1, int iType = 0)
+    public void Execute(const int iAdmin, const char[] szReason = NULL_STRING, int iLength = -1, int iType = 0)
     {
-        hRequest = new HTTPRequest(API_ENDPOINT ... "/punishment");
+        hRequest = new HTTPRequest(HYPESRV_API ... "/punishment");
         hRequest.SetHeader("Content-Type", "application/json");
-        hRequest.SetHeader("Authorization", ACCESS_TOKEN);
+        hRequest.SetHeader("Authorization", HYPESRV_AUTH_TOKEN);
 
         Punishment jPunishment = new Punishment();
 
-        jPunishment.iTargetID = GetSteamAccountID(this.iUserID);
+        jPunishment.iTargetID = GetSteamAccountID(this.iTarget);
 
         if (iAdmin == 0)
             jPunishment.iAdminID = 0;
@@ -266,7 +279,9 @@ methodmap Punish
             jPunishment.iAdminID = GetSteamAccountID(iAdmin);
 
         jPunishment.iServerID = HP_GetServerID();
-        jPunishment.SetReason(szReason);
+
+        if (szReason[0] != '\0')
+            jPunishment.SetReason(szReason);
 
         DateTime dTime = new DateTime(DateTime_Now);
 
@@ -317,7 +332,8 @@ methodmap Punish
 #endif
 
         DataPack hPack = new DataPack();
-        hPack.WriteCell(GetClientUserId(this.iUserID));
+
+        hPack.WriteCell(GetClientUserId(this.iTarget));
 
         if (iAdmin != 0)
             hPack.WriteCell(GetClientUserId(iAdmin));

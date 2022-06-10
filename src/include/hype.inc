@@ -183,11 +183,11 @@ stock char szConsoleColoursCodes[][] =
 
 stock void CPrintToServer(char[] szMessage, any ...)
 {
-	decl char szOutput[PLATFORM_MAX_PATH];
+	decl char szOutput[MAX_STRING_LENGTH];
 	VFormat(szOutput, sizeof(szOutput), szMessage, 2);
 
 	for (int i = 0; i < sizeof(szConsoleColoursTags); i++)
-		ReplaceString(szOutput, 250, szConsoleColoursTags[i], szConsoleColoursCodes[i]);
+		ReplaceString(szOutput, sizeof(szOutput), szConsoleColoursTags[i], szConsoleColoursCodes[i]);
 
 	PrintToServer(szOutput);
 }
@@ -196,7 +196,7 @@ stock void LogDebug(const char[] szMessage, any ...)
 {
 	decl char szTime[48];
 	decl char szPath[PLATFORM_MAX_PATH];
-	decl char szBuffer[PLATFORM_MAX_PATH * 2];
+	decl char szBuffer[MAX_STRING_LENGTH];
 
 	VFormat(szBuffer, sizeof(szBuffer), szMessage, 2);
 

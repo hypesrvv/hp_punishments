@@ -1,0 +1,117 @@
+#if defined _hp_punishments_included
+    #endinput
+#endif
+#define _hp_punishments_included
+
+enum EPunishmentType
+{
+    k_EPunishmentTypeBan,
+    k_EPunishmentTypeKick,
+    k_EPunishmentTypeSilence,
+    k_EPunishmentTypeGag,
+    k_EPunishmentTypeMute,
+
+    k_EPunishmentTypeTotal
+}
+
+enum EBanReason
+{
+    k_EBanReasonCheat,
+    k_EBanReasonExploit,
+    k_EBanReasonSpam,
+    k_EBanReasonInappropriate,
+    k_EBanReasonIgnorance,
+    k_EBanReasonCustom,
+
+    k_EBanReasonTotal
+}
+
+stock char g_szBanReasons[][] =
+{
+    "Cheating",
+    "Exploiting",
+    "Spamming",
+    "Inappropiate Behaviour",
+    "Ignoring Admins",
+    "Own Reason"
+};
+
+enum ECheatingReason
+{
+    k_ECheatingReasonAimbot,
+    k_ECheatingReasonAntiRecoil,
+    k_ECheatingReasonWallhack,
+    k_ECheatingReasonMultiHack,
+
+    k_ECheatingReasonTotal
+}
+
+stock char g_szBanCheatingReasons[][] =
+{
+    "Aimbot",
+    "Anti Recoil",
+    "Wall Hack",
+    "Multi-Hack"
+};
+
+enum EPunishmentTime
+{
+    k_EPunishmentTimePermanent,       // 0,
+    k_EPunishmentTimeDay,             // 1440
+    k_EPunishmentTimeHour,            // 60,
+    k_EPunishmentTimeWeek,            // 10080,
+    k_EPunishmentTimeMonth,           // 43200,
+    k_EPunishmentTimeYear,            // 525600,
+
+    k_EPunishmentTimeTotal
+}
+
+stock char g_szBanTimes[][] =
+{
+    "Permanent",
+    "One Day",
+    "One Hour",
+    "One Week",
+    "One Month",
+    "One Year"
+};
+
+/**
+ *	Called once a client is punnished
+ *
+ *	@param iTargetID		Target client userid.
+ *	@param iAdminID			Admin client userid.
+ *	@param szReason			Punishment reason.
+ *	@param szLength			Punishment length.
+ *  @param iBanID           Punishment id.
+*/
+forward void HP_OnClientPunished(const int iTargetID, const int iAdminID, const char[] szReason, const char[] szLength, const int iBanID);
+
+/**
+ *	Native for punishing players.
+ *
+ *	@param iTarget		    Target client index.
+ *	@param iAdmin			Admin client index. ( Use 0 for Console )
+ *	@param szReason			Punishment reason.
+ *	@param iLength			Punishment legnth.
+ *	@param iType			Punishment type.
+*/
+native any HP_PunishPlayer(int iTarget, int iAdmin, const char[] szReason, int iLegnth = -1, int iType = 0);
+
+public SharedPlugin __pl_hp_punishments =
+{
+	name = "Punishments",
+	file = "hp_punishments.smx",
+#if defined REQUIRE_PLUGIN
+	required = 1,
+#else
+	required = 0,
+#endif
+}
+
+#if !defined REQUIRE_PLUGIN
+public void __pl_hp_punishments_SetNTVOptional()
+{
+	MarkNativeAsOptional("HP_PunishPlayer");
+}
+#endif

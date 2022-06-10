@@ -5,10 +5,11 @@
 #include <cstrike>
 #include <anymap>
 #include <ripext>
+#include <PTaH>
 #include <regex>
-#include <hype/core>
-#include <hype/punishments>
-#include <hype>
+#include <hypesrv>
+#include <hypesrv/plugin/core>
+#include <hypesrv/plugin/punishments>
 
 #if !defined RSVP_COMPILER
 	#define decl static
@@ -28,12 +29,13 @@
 #define REGEX_MONTH "m|mo|month|months|"
 #define REGEX_HOUR "h|hr|hour|hours"
 
-#define API_ENDPOINT "http://73.139.147.98:3000/private"
-#define ACCESS_TOKEN "YQ3J9s8pqnfrwQGJAeCjRNd4Bc6mWpPj"
-
 #define PUNISHMENT_FOOTER "\n\nWebsite: " ... HP_WEB ... "\nDiscord: " ... HP_URL ... "\nEmail: " ... HP_EMAIL
 
 #define MAX_PUNISHMENTS_LENGTH 128
+
+#define UNIX_TIMEZONE "-0400"
+
+#define MAX_REASON_LEGNTH 128
 
 #pragma dynamic 0
 #pragma semicolon 1
@@ -48,8 +50,8 @@
 public Plugin myinfo =
 {
 	name    = HP_PLUG ... "Punishments",
-	author  = "DRANIX",
-	version = "0.3",
+	author  = HP_AUTHOR,
+	version = "0.5",
 	url     = HP_URL
 }
 
@@ -57,11 +59,15 @@ public void OnPluginStart()
 {
 	OnHypeSRVInit();
 
+	// HookEvent("player_spawn", Event_OnPlayerSpawn);
+
 	RegAdminCmd("sm_admin", Command_Admin, ADMFLAG_BAN);
 	RegAdminCmd("sm_ban", Command_Ban, ADMFLAG_BAN);
+
+	PTaH(PTaH_ClientVoiceToPre, Hook, Event_OnPlayerVoice);
 }
 
-public APLRes AskPluginLoad2(Handle hSelf, bool bLate, char[] szError, int iLength)
+public APLRes AskPluginLoad2(Handle hMySelf, bool bLate, char[] szError, int iLength)
 {
 	if (GetEngineVersion() != Engine_CSGO)
 	{
@@ -79,6 +85,16 @@ public APLRes AskPluginLoad2(Handle hSelf, bool bLate, char[] szError, int iLeng
 	return APLRes_Success;
 }
 
+// public void Event_OnPlayerSpawn(Event hEvent, const char[] szName, bool bHush)
+// {
+// 	int iClient = GetClientOfUserId(hEvent.GetInt("userid"));
+
+// 	if (IsFakeClient(iClient))
+// 		return;
+
+
+// }
+
 public Action Command_Admin(int iClient, int iArgs)
 {
 	DisplayAdminMenu(iClient);
@@ -90,23 +106,17 @@ public void HP_OnClientConnected(int iUserID)
 {
 	int iClient = GetClientOfUserId(iUserID);
 
-	if (IsClientStaff(iClient))
+	if (HP_IsClientStaff(iClient))
 		g_ETarget[iClient].Clear();
 
 	g_EUser[iClient].Init(iClient);
 
-	decl char szURL[128];
-	FormatEx(szURL, sizeof(szURL), API_ENDPOINT ... "/user/%i/punishments/active", g_EUser[iClient].iAccountID);
-
-	hRequest = new HTTPRequest(szURL);
-	hRequest.SetHeader("Authorization", ACCESS_TOKEN);
-
-	hRequest.Get(HTTPRequest_OnPunishmentsFetched, iUserID);
+	UpdateClientPunishments(iClient);
 }
 
 public void OnClientDisconnect(int iClient)
 {
-	if (IsClientStaff(iClient))
+	if (HP_IsClientStaff(iClient))
 		g_ETarget[iClient].Clear();
 
 	g_EUser[iClient].Clear();
@@ -130,9 +140,9 @@ public Action Command_Ban(int iClient, int iArgs)
 	decl char szBanPeriod[4];
 	decl char szArguments[128];
 
-	static const char szDay[][]   = { "d", "day", "days" };
-	static const char szMonth[][] = { "m", "month", "mo", "months" };
-	static const char szHour[][]  = { "h", "hour", "hr", "hours" };
+	// static const char szDay[][]   = { "d", "day", "days" };
+	// static const char szMonth[][] = { "m", "month", "mo", "months" };
+	// static const char szHour[][]  = { "h", "hour", "hr", "hours" };
 
 	GetCmdArgString(szArguments, sizeof(szArguments));
 
@@ -150,60 +160,83 @@ public Action Command_Ban(int iClient, int iArgs)
 
 	DateTime dTime = new DateTime(DateTime_Now);
 
-	for (int i = 0; i < sizeof(szDay); i++)
+	switch (szBanPeriod[1])
 	{
-		if (!strcmp(szBanPeriod, szDay[i], false))
-		{
-			dTime += TimeSpan.FromDays(iBanLength);
-			break;
-		}
+		case 'd': dTime += TimeSpan.FromDays(iBanLength);
+		case 'm': dTime += TimeSpan.FromHours(iBanLength * TIME_MONTH);
+		case 'h': dTime += TimeSpan.FromHours(iBanLength);
 	}
 
-	for (int i = 0; i < sizeof(szMonth); i++)
-	{
-		if (!strcmp(szBanPeriod, szMonth[i], false))
-		{
-			dTime += TimeSpan.FromHours(iBanLength * TIME_MONTH);
-			break;
-		}
-	}
+	// for (int i = 0; i < sizeof(szDay); i++)
+	// {
+	// 	if (!strcmp(szBanPeriod, szDay[i], false))
+	// 	{
+	// 		dTime += TimeSpan.FromDays(iBanLength);
+	// 		break;
+	// 	}
+	// }
 
-	for (int i = 0; i < sizeof(szHour); i++)
-	{
-		if (!strcmp(szBanPeriod, szHour[i], false))
-		{
-			dTime += TimeSpan.FromHours(iBanLength);
-			break;
-		}
-	}
+	// for (int i = 0; i < sizeof(szMonth); i++)
+	// {
+	// 	if (!strcmp(szBanPeriod, szMonth[i], false))
+	// 	{
+	// 		dTime += TimeSpan.FromHours(iBanLength * TIME_MONTH);
+	// 		break;
+	// 	}
+	// }
 
-	iTarget = FindPlayer(iClient, szTarget, false, false);
+	// for (int i = 0; i < sizeof(szHour); i++)
+	// {
+	// 	if (!strcmp(szBanPeriod, szHour[i], false))
+	// 	{
+	// 		dTime += TimeSpan.FromHours(iBanLength);
+	// 		break;
+	// 	}
+	// }
 
-	if (!IsClientInGame(iTarget))
+	iTarget = FindTarget(iClient, szTarget, false, false);
+
+	if (!IsClientConnected(iTarget))
 	{
 		PrintToChat(iClient, "%s\x08Client \"\x04%s\x08\" not found or has been disconected", TAG_HYPESRV_CLR, szTarget);
 		return Plugin_Handled;
 	}
 
-	Punish(iTarget).Execute(iClient, szReason, dTime.Unix);
+	Punish(iTarget).Execute(iClient, szReason, dTime.Unix, view_as<int>(k_EPunishmentTypeBan));
 
 	delete hRegex;
 
 	return Plugin_Handled;
 }
 
-// public void OnClientSayCommand_Post(int iClient, const char[] szCommand, const char[] szArgs)
-// {
-// 	if (g_bOwnReason[iClient])
-// 	{
-// 		if (!strncmp(szArgs, "!abort", 6, false))
-// 		{
-// 			PrintToChatAll("aborted!");
-// 			g_bOwnReason[iClient] = false;
-// 		}
+public Action OnClientSayCommand(int iClient, const char[] szCommand, const char[] szArgs)
+{
+	if (g_EUser[iClient].bIsGagged || g_EUser[iClient].bIsSilenced)
+		return Plugin_Handled;
 
-// 		strcopy(g_szOwnReason, sizeof(g_szOwnReason), szArgs);
-// 	}
-// }
+	return Plugin_Continue;
+}
+
+public void OnClientSayCommand_Post(int iClient, const char[] szCommand, const char[] szArgs)
+{
+	if (g_ETarget[iClient].bOwnReason)
+	{
+		if (!strncmp(szArgs, "!abort", 6, false))
+		{
+			PrintToChatAll("aborted!");
+			g_ETarget[iClient].bOwnReason = false;
+		}
+
+		strcopy(g_ETarget[iClient].szReason, sizeof(ETarget::szReason), szArgs);
+	}
+}
+
+public Action Event_OnPlayerVoice(int iClient, int iTarget, bool &bListen)
+{
+	if (g_EUser[iClient].bIsMuted || g_EUser[iClient].bIsSilenced)
+		return Plugin_Handled;
+
+	return Plugin_Continue;
+}
 
 // subtract 250 from string
