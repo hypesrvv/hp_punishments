@@ -1,3 +1,5 @@
+#define PUBVAR_MAXCLIENTS
+
 #include <sourcemod>
 #include <DateTime>
 #include <sdkhooks>
@@ -163,7 +165,7 @@ public Action Command_Ban(int iClient, int iArgs)
 	switch (szBanPeriod[1])
 	{
 		case 'd': dTime += TimeSpan.FromDays(iBanLength);
-		case 'm': dTime += TimeSpan.FromHours(iBanLength * TIME_MONTH);
+		case 'm': dTime += TimeSpan.FromHours((iBanLength * TIME_MONTH));
 		case 'h': dTime += TimeSpan.FromHours(iBanLength);
 	}
 

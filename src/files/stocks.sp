@@ -38,14 +38,6 @@ stock Action Timer_PunishmentExpire(Handle hTimer, DataPack hPack)
     return Plugin_Stop;
 }
 
-
-stock char[] IntToStr(const int szInteger)
-{
-    decl char z[10];
-    FormatEx(z, 10, "%i", szInteger);
-    return z;
-}
-
 stock void PrintToChatTimer(const float fTime, const int iUserID, char[] szMessage, any ...)
 {
     decl char szOutput[MAX_STRING_LENGTH];

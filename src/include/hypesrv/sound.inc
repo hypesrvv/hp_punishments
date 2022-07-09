@@ -3,28 +3,25 @@
 #endif
 #define _HP_MODULE_SOUND_INCLUDED_
 
-stock void HP_PlayToRadius(float fOrigin[3], float fRadius, char[] szSound)
+stock void PlayToRadius(float fOrigin[3], float fRadius, const char[] szSound)
 {
-	decl char szBuffer[PLATFORM_MAX_PATH];
-	FormatEx(szBuffer, sizeof(szBuffer), "play %s", szSound);
+	// decl char szBuffer[PLATFORM_MAX_PATH];
+	// FormatEx(szBuffer, sizeof(szBuffer), "play %s", szSound);
 
 	for (int i = 0; i < MaxClients; i++)
 	{
 		if (IsClientConnected(i))
-			if (HP_GetDistanceOrigin(i, fOrigin) <= fRadius)
-				ClientCommand(i, szBuffer);
+			if (GetDistanceOrigin(i, fOrigin) <= fRadius)
+				ClientCommand(i, "play " ... szSound);
 	}
 }
 
-stock bool HP_CheckAudio(int iClient)
+stock bool CheckAudio(int iClient)
 {
-	if (!HP_IsValidPlayer(iClient))
-		return false;
-
 	return QueryClientConVar(iClient, "voice_inputfromfile", HP_Query_CheckAudio);
 }
 
-stock bool HP_Query_CheckAudio(QueryCookie cCookie, int iClient, ConVarQueryResult rResult, const char[] szName, const char[] szValue)
+stock bool Query_CheckAudio(QueryCookie cCookie, int iClient, ConVarQueryResult rResult, const char[] szName, const char[] szValue)
 {
-	return rResult == ConVarQuery_Okay && StringToInt(sValue) == 1;
+	return (rResult == ConVarQuery_Okay && StringToInt(sValue) == 1);
 }

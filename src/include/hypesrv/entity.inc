@@ -5,7 +5,7 @@
 
 #define MAX_ENTITY_LIMIT 4096 + 1
 
-stock bool HP_IsValidEntity(int iEntity)
+stock bool IsValidEntityEx(int iEntity)
 {
 	if (!iEntity || iEntity < MaxClients || iEntity > MAX_ENTITY_LIMIT)
 		return false;
@@ -13,17 +13,17 @@ stock bool HP_IsValidEntity(int iEntity)
 	return IsValidEntity(iEntity);
 }
 
-stock bool HP_IsEntityWorld(int iEntity)
+stock bool IsEntityWorld(int iEntity)
 {
-	return iEntity == 0;
+	return (iEntity == 0);
 }
 
-stock bool HP_IsValidEntityRef(int iReference)
+stock bool IsValidEntityRef(int iReference)
 {
-	return HP_IsValidEntity(EntRefToEntIndex(iReference));
+	return IsValidEntityEx(EntRefToEntIndex(iReference));
 }
 
-stock bool HP_GetAbsOrigin(int iEntity, float fVec[3], bool bValidate = false)
+stock bool GetAbsOrigin(int iEntity, float fVec[3], bool bValidate = false)
 {
 	if (!bValidate || (IsValidEdict(iEntity) && HasEntProp(iEntity, Prop_Send, "m_vecOrigin")))
 	{
@@ -34,28 +34,7 @@ stock bool HP_GetAbsOrigin(int iEntity, float fVec[3], bool bValidate = false)
 	return false;
 }
 
-stock int HP_GetClassName(int iEntity, char[] cBuffer, int iSize)
-{
-	return GetEntPropString(iEntity, Prop_Data, "m_iClassname", cBuffer, iSize);
-}
-
-stock bool HP_SetClassName(int iEntity, const char[] cClassName)
-{
-	return DispatchKeyValue(iEntity, "classname", cClassName);
-}
-
-stock bool HP_ClassNameMatches(int iEntity, const char[] cClassName, bool bPartialMatch = false)
-{
-	decl char cEntityClassName[64];
-	HP_GetClassName(iEntity, STRING(cEntityClassName));
-
-	if (bPartialMatch)
-		return HP_StrContains(cEntityClassName, cClassName);
-
-	return HP_StrEquals(cEntityClassName, cClassName);
-}
-
-stock float HP_GetDistanceOrigin(int entity, const float vec[3])
+stock float GetDistanceOrigin(int entity, const float vec[3])
 {
 	decl float entityVec[3];
 	GetEntPropVector(entity, Prop_Send, "m_vecOrigin", entityVec);
@@ -63,13 +42,13 @@ stock float HP_GetDistanceOrigin(int entity, const float vec[3])
 	return GetVectorDistance(entityVec, vec);
 }
 
-stock int HP_GetClosestToEntity(int iEntity, bool bOnlyClients = false)
+stock int GetClosestToEntity(int iEntity, bool bOnlyClients = false)
 {
 	decl float fOrigin[3];
-	return HP_GetAbsOrigin(iEntity, fOrigin) ? HP_GetClosest(fOrigin, bOnlyClients) : INVALID_ENT_REFERENCE;
+	return GetAbsOrigin(iEntity, fOrigin) ? GetClosest(fOrigin, bOnlyClients) : INVALID_ENT_REFERENCE;
 }
 
-stock int HP_GetClosest(float fOriginVec[3], bool bOnlyClients = false)
+stock int GetClosest(float fOriginVec[3], bool bOnlyClients = false)
 {
 	decl float fTempVec[3], fSmallestDistance = 0.0, fTempDistance;
 	int iClosest	 = INVALID_ENT_REFERENCE;
@@ -78,7 +57,7 @@ stock int HP_GetClosest(float fOriginVec[3], bool bOnlyClients = false)
 
 	for (int iEdict = 1; iEdict <= iMaxEntities; iEdict++)
 	{
-		if (HP_GetAbsOrigin(iEdict, fTempVec))
+		if (GetAbsOrigin(iEdict, fTempVec))
 		{
 			fTempDistance = GetVectorDistance(fOriginVec, fTempVec, true);
 
@@ -93,10 +72,10 @@ stock int HP_GetClosest(float fOriginVec[3], bool bOnlyClients = false)
 	return iClosest;
 }
 
-stock void HP_SetEntitySelfDestruct(int iEntity, float fDuration)
+stock void SetEntitySelfDestruct(int iEntity, float fDuration)
 {
 	decl char sOutput[64];
-	FormatEx(STRING(sOutput), "OnUser1 !self:kill::%.1f:1", fDuration);
+	FormatEx(sOutput, sizeof(sOutput), "OnUser1 !self:kill::%.1f:1", fDuration);
 	SetVariantString(sOutput);
 	AcceptEntityInput(iEntity, "AddOutput");
 	AcceptEntityInput(iEntity, "FireUser1");

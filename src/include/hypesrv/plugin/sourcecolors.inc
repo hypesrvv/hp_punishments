@@ -334,20 +334,20 @@ stock void CShowActivityEx(int client, const char[] tag, const char[] message, a
     ShowActivityEx(client, _CL_buffer_tag, _CL_buffer);
 }
 
-/**
- * Replaces PrintToServer.
- * Removes color tags.
- *
- * @param message   Formatting rules.
- * @param ...       Variable number of format parameters.
- * @return          No return
- */
-stock void CPrintToServer(const char[] message, any ...)
-{
-    VFormat(_CL_buffer[_CL_buffer_index], _CL_buffer_size, message, 2);
-    CRemoveTags(_CL_buffer[_CL_buffer_index], _CL_buffer_size);
-    PrintToServer(_CL_buffer[_CL_buffer_index]);
-}
+// /**
+//  * Replaces PrintToServer.
+//  * Removes color tags.
+//  *
+//  * @param message   Formatting rules.
+//  * @param ...       Variable number of format parameters.
+//  * @return          No return
+//  */
+// stock void CPrintToServer(const char[] message, any ...)
+// {
+//     VFormat(_CL_buffer[_CL_buffer_index], _CL_buffer_size, message, 2);
+//     CRemoveTags(_CL_buffer[_CL_buffer_index], _CL_buffer_size);
+//     PrintToServer(_CL_buffer[_CL_buffer_index]);
+// }
 
 /**
  * Gets a clients name that is safe to use with Color Lib.
@@ -581,7 +581,7 @@ stock void CFormat(char[] message, int maxlength)
             {
                 ++i;
                 int length = 0;
-                decl char cc = view_as<char>(_CL_ColorMap(message[i], length));
+                char cc = view_as<char>(_CL_ColorMap(message[i], length));
                 if (cc)
                 {
                     message[index] = cc;

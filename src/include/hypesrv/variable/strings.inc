@@ -5,12 +5,12 @@
 
 #define STRING_EMPTY "\0"
 
-stock bool HP_IsStringEmpty(const char[] szBuffer)
+stock bool IsStringEmpty(const char[] szBuffer)
 {
 	return !szBuffer[0] || strlen(szBuffer) == 0;
 }
 
-stock bool HP_IsStringNumber(const char[] szBuffer)
+stock bool IsStringNumber(const char[] szBuffer)
 {
 	int iTarget, iDots, iNumbers;
 
@@ -39,56 +39,46 @@ stock bool HP_IsStringNumber(const char[] szBuffer)
 	return iNumbers > 0;
 }
 
-stock bool HP_StringToBool(const char[] szBuffer)
+stock bool StringToBool(const char[] szBuffer)
 {
 	return view_as<bool>(StringToInt(szBuffer));
 }
 
-stock void HP_TruncateString(char[] szBuffer)
+stock void TruncateString(char[] szBuffer)
 {
 	szBuffer[0] = EOS;
 }
 
-stock int HP_FlagStringToInt(char[] szBuffer)
+stock int FlagStringToInt(char[] szBuffer)
 {
 	AdminFlag aFlag;
 	return FindFlagByChar(szBuffer[0], aFlag) ? FlagToBit(aFlag) : INVALID_ENT_REFERENCE;
 }
 
-stock char[] HP_StringBuilder(const char[] szFormat, any...)
+stock char[] StringBuilder(const char[] szFormat, any...)
 {
 	int iLength			= strlen(szFormat) + 255;
-	char[] cBuiltString = new char[iLength];
+	char[] szString = new char[iLength];
 
-	VFormat(cBuiltString, iLength, szFormat, 2);
-	return cBuiltString;
+	VFormat(szString, iLength, szFormat, 2);
+	return szString;
 }
 
-stock int HP_FlagIntToString(int iFlag)
+stock int FlagIntToString(int iFlag)
 {
 	AdminFlag aFlag;
 	int		  iChar;
 	return (BitToFlag(iFlag, aFlag) && FindFlagChar(aFlag, iChar)) ? iChar : INVALID_ENT_REFERENCE;
 }
 
-stock char HP_IntToString(int iInt)
+stock char IntToStr(int iInt)
 {
-	decl char szBuffer[32];
-	FormatEx(szBuffer, sizeof(szBuffer), "%d", iInt);
-	return cBuffer;
+	decl char s[32];
+	FormatEx(s, sizeof(s), "%i", iInt);
+	return s;
 }
 
-stock bool HP_StrEquals(const char[] string, char[] substring, bool caseSensitive = true)
-{
-	return strcmp(string, substring, caseSensitive) == 0;
-}
-
-stock bool HP_StrContains(const char[] String, const char[] Text, bool caseSensitive = false)
-{
-	return StrContains(String, Text, caseSensitive) != -1;
-}
-
-stock void HP_StringToLower(char[] sText, int iStartLen = 0, int iEndLen = 0)
+stock void StringToLower(char[] sText, int iStartLen = 0, int iEndLen = 0)
 {
 	int iLen = strlen(sText) + 1;
 
@@ -99,7 +89,7 @@ stock void HP_StringToLower(char[] sText, int iStartLen = 0, int iEndLen = 0)
 		sText[i] |= 0x20;
 }
 
-stock void HP_StringToUpper(char[] szText, int iStartLen = 0, int iEndLen = 0)
+stock void StringToUpper(char[] szText, int iStartLen = 0, int iEndLen = 0)
 {
 	int iLen = strlen(szText) + 1;
 
@@ -110,60 +100,23 @@ stock void HP_StringToUpper(char[] szText, int iStartLen = 0, int iEndLen = 0)
 		szText[i] &= ~0x20;
 }
 
-stock void HP_FirstCharUpper(char[] szText)
+stock void FirstCharUpper(char[] szText)
 {
-	if (strlen(szText) > 0)
+	if (strlen(szText))
 		szText[0] &= ~0x20;
 }
 
-stock void HP_RemoveFrontString(char[] szText, int iSize, int iPosition)
+stock bool StartsWith(const char[] szBuffer, const char[] szSubString)
 {
-	strcopy(szText, iSize, sText[iPosition]);
-}
+	int iPos;
 
-stock bool HP_StartsWith(const char[] szBuffer, const char[] szSubString)
-{
-	int n;
-
-	while (szSubString[n] != EOS)
+	while (szSubString[iPos] != EOS)
 	{
-		if (szBuffer[n] == EOS || szBuffer[n] != szSubString[n])
+		if (szBuffer[iPos] == EOS || szBuffer[iPos] != szSubString[iPos])
 			return false;
 
-		n++;
+		iPos++;
 	}
 
 	return true;
-}
-
-/*
- * Count the characters in a string
- *
- * @param str           String to check
- * @return              Count of characters in the string
- */
-stock int HP_CharCount(const char[] szStr)
-{
-	int iCount, ilen = strlen(szStr);
-
-	for (int i, b; i < ilen; i++)
-	{
-		if (b = IsCharMB(szStr[i]))
-			i += (b - 1);
-
-		iCount++;
-	}
-
-	return iCount;
-}
-
-stock int HP_CountChar(int iCharacter, const char[] szString)
-{
-	int iCount, ilen = strlen(szString);
-
-	for (int i; i < ilen; i++)
-		if (szString[i] == iCharacter)
-			iCount++;
-
-	return iCount;
 }

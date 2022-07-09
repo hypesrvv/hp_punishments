@@ -22,32 +22,27 @@ enum TeamType
 	TeamType_Unassigned
 };
 
-stock bool HP_IsClientCrouching(int iClient)
+stock bool IsClientCrouching(int iClient)
 {
-	return GetEntityFlags(iClient) & FL_DUCKING;
+	return (GetEntityFlags(iClient) & FL_DUCKING);
 }
 
-stock bool HP_IsClientOnGround(int iClient)
+stock bool IsClientOnGround(int iClient)
 {
-	return GetEntityFlags(iClient) & FL_ONGROUND;
+	return (GetEntityFlags(iClient) & FL_ONGROUND);
 }
 
-stock bool HP_IsClientOnLadder(int iClient)
+stock bool IsClientOnLadder(int iClient)
 {
-	return GetEntityMoveType(iClient) == MOVETYPE_LADDER;
+	return (GetEntityMoveType(iClient) == MOVETYPE_LADDER);
 }
 
-stock bool HP_IsClientCoaching(int iClient)
+stock bool IsClientCoaching(int iClient)
 {
 	return (GetClientTeam(iClient) == CS_TEAM_SPECTATOR && HP_GetEntPropBool(iClient, Prop_Send, "m_iCoachingTeam"));
 }
 
-stock bool HP_IsClientTimingOut(int iClient, bool bCheck = true)
-{
-	return (!bCheck || IsClientConnected(iClient)) && IsClientTimingOut(iClient);
-}
-
-stock bool HP_IsLookingAtWall(int iClient, float fDistance = 40.0)
+stock bool IsLookingAtWall(int iClient, float fDistance = 40.0)
 {
 	decl float fEye[3], fEyeAngle[3];
 	bool isClientLookingAtWall = false;
@@ -57,7 +52,7 @@ stock bool HP_IsLookingAtWall(int iClient, float fDistance = 40.0)
 
 	fEyeAngle[0] = 0.0;
 
-	Handle hTrace = TR_TraceRayFilterEx(fEye, fEyeAngle, CONTENTS_SOLID, RayType_Infinite, HP_LookingWall_TraceEntityFilter);
+	Handle hTrace = TR_TraceRayFilterEx(fEye, fEyeAngle, CONTENTS_SOLID, RayType_Infinite, LookingWall_TraceEntityFilter);
 
 	if (TR_DidHit(hTrace))
 	{
@@ -80,12 +75,12 @@ stock bool HP_IsLookingAtWall(int iClient, float fDistance = 40.0)
 	return isClientLookingAtWall;
 }
 
-public bool HP_LookingWall_TraceEntityFilter(int iEntity, int iMask)
+public bool LookingWall_TraceEntityFilter(int iEntity, int iMask)
 {
-	return iEntity == 0;
+	return (iEntity == 0);
 }
 
-stock TeamType HP_GetClientTeamType(int iClient, int iTeam)
+stock TeamType GetClientTeamType(int iClient, int iTeam)
 {
 	switch (GetClientTeam(iClient))
 	{
@@ -96,157 +91,110 @@ stock TeamType HP_GetClientTeamType(int iClient, int iTeam)
 	}
 }
 
-stock float HP_GetPlayerSpeed(int iClient)
+stock float GetPlayerSpeed(int iClient)
 {
 	decl float fVelocity[3];
 	GetEntPropVector(iClient, Prop_Data, "m_vecAbsVelocity", fVelocity);
 	return GetVectorLength(fVelocity);
 }
 
-stock int HP_GetClientVehicle(int iClient)
+stock int GetClientVehicle(int iClient)
 {
 	return GetEntPropEnt(iClient, Prop_Send, "m_hVehicle");
 }
 
-stock int HP_GetClientArmor(int iClient)
-{
-	return GetEntProp(iClient, Prop_Data, "m_ArmorValue");
-}
-
-stock void HP_SetClientArmor(int iClient, int value)
-{
-	SetEntProp(iClient, Prop_Data, "m_ArmorValue", value);
-}
-
-stock void HP_GetClientLastPlaceName(int iClient, char[] szBuffer, int iSize)
+stock void GetClientLastPlaceName(int iClient, char[] szBuffer, int iSize)
 {
 	GetEntPropString(iClient, Prop_Send, "m_szLastPlaceName", szBuffer, iSize);
 }
 
-stock WaterLevel HP_GetClientWaterLevel(int iClient)
+stock WaterLevel GetClientWaterLevel(int iClient)
 {
 	return view_as<WaterLevel>(GetEntProp(iClient, Prop_Send, "m_nWaterLevel"));
 }
 
-stock int HP_GetClientFOV(int iClient)
+stock int GetClientFOV(int iClient)
 {
 	return GetEntProp(iClient, Prop_Send, "m_iFOV");
 }
 
-stock void HP_SetClientFOV(int iClient, int iValue)
+stock void SetClientFOV(int iClient, int iValue)
 {
 	SetEntProp(iClient, Prop_Send, "m_iFOV", iValue);
 }
 
-stock void HP_GetClientViewOffset(int iClient, float fVec[3])
+stock void GetClientViewOffset(int iClient, float fVec[3])
 {
 	GetEntPropVector(iClient, Prop_Data, "m_vecViewOffset", fVec);
 }
 
-stock void HP_SetViewOffset(int iClient, float fVec[3])
+stock void SetViewOffset(int iClient, float fVec[3])
 {
 	SetEntPropVector(iClient, Prop_Data, "m_vecViewOffset", fVec);
 }
 
-stock void HP_SetClientCoaching(int iClient, int iTeam)
+stock void SetClientCoaching(int iClient, int iTeam)
 {
 	SetEntProp(iClient, Prop_Send, "m_iCoachingTeam", iTeam);
 }
 
-stock bool HP_ChangeClientTeamAlive(int iClient, int iTeam)
+stock void SetClientArmor(int iClient, int value)
 {
-	if (!IsClientInGame(iClient) || !IsPlayerAlive(iClient) || (iTeam < 2) || (iTeam > 3))
-		return false;
-
-	int iLifeState = GetEntProp(iClient, Prop_Send, "m_lifeState");
-	SetEntProp(iClient, Prop_Send, "m_lifeState", 2);
-	ChangeClientTeam(iClient, iTeam);
-	SetEntProp(iClient, Prop_Send, "m_lifeState", iLifeState);
-	return true;
+	SetEntProp(iClient, Prop_Data, "m_ArmorValue", value);
 }
 
-stock void HP_SetClientFrags(int iClient, int iValue)
+stock void SetClientFrags(int iClient, int iValue)
 {
     SetEntProp(iClient, Prop_Data, "m_iFrags", iValue);
 }
 
-stock void HP_SetClientDeaths(int iClient, int iValue)
+stock void SetClientDeaths(int iClient, int iValue)
 {
     SetEntProp(iClient, Prop_Data, "m_iDeaths", iValue);
 }
 
-stock void HP_SetClientMoney(int iClient, int iValue)
+stock void SetClientMoney(int iClient, int iValue)
 {
     SetEntProp(iClient, Prop_Send, "m_iAccount", iValue);
 }
 
-stock void HP_GiveClientMoney(int iClient, int iValue)
+stock void GiveClientMoney(int iClient, int iValue)
 {
-    SetEntProp(iClient, Prop_Send, "m_iAccount", GetEntProp(client, Prop_Send, "m_iAccount") + iValue);
+    SetEntProp(iClient, Prop_Send, "m_iAccount", (GetEntProp(client, Prop_Send, "m_iAccount") + iValue));
 }
 
-stock void HP_SetClientKevlar(int iClient, int iValue)
+stock void SetClientKevlar(int iClient, int iValue)
 {
     SetEntProp(iClient, Prop_Send, "m_ArmorValue", iValue);
 }
 
-stock void HP_SetClientHelmet(int iClient, bool bHasHelmet)
+stock void SetClientHelmet(int iClient, bool bHasHelmet)
 {
     SetEntProp(iClient, Prop_Send, "m_bHasHelmet", bHasHelmet);
 }
 
-stock void HP_SetClientHud(int iClient, int iValue)
+stock void SetClientHud(int iClient, int iValue)
 {
     SetEntProp(iClient, Prop_Send, "m_iHideHUD", iValue);
 }
 
-stock void HP_SetClanTag(int iClient, const char[] sBuffer)
+stock void ShowOverlayToClient(int iClient, const char[] szOverlayPath)
 {
-	if (IsClientConnected(iClient))
-		CS_SetClientClanTag(iClient, sBuffer);
+	ClientCommand(iClient, "r_screenoverlay \"%s\"", szOverlayPath);
 }
 
-stock void HP_SafeSlay(int iClient)
+stock void ShowOverlayToAll(const char[] szOverlayPath)
 {
-	if (IsClientConnected(iClient))
-		ForcePlayerSuicide(iClient);
+	for (int i = 1; i <= MaxClients; i++)
+		ShowOverlayToClient(i, szOverlayPath);
 }
 
-stock void HP_ShowOverlayToClient(int iClient, const char[] cOverlayPath)
+stock void SetGodMode(int iClient, bool bEnabled)
 {
-	ClientCommand(iClient, "r_screenoverlay \"%s\"", cOverlayPath);
+	SetEntProp(iClient, Prop_Data, "m_takedamage", bEnabled ? 0 : 2, 1);
 }
 
-stock void HP_ShowOverlayToAll(const char[] cOverlayPath)
-{
-	for (int iClient = 1; iClient <= MaxClients; iClient++)
-		if (IsClientConnected(iClient))
-			HP_ShowOverlayToClient(iClient, cOverlayPath);
-}
-
-stock void HP_GodMode(int iClient, bool bEnabled)
-{
-	if (IsClientInGame(iClient))
-		SetEntProp(iClient, Prop_Data, "m_takedamage", bEnabled ? 0 : 2, 1);
-}
-
-stock void HP_MutePlayer(int iClient)
-{
-	if (IsClientConnected(iClient))
-		SetClientListeningFlags(iClient, VOICE_MUTED);
-}
-
-stock void HP_UnmutePlayer(int iClient)
-{
-	switch (FindConVar("sv_deadtalk").IntValue)
-	{
-		case 1: if (!IsPlayerAlive(iClient)) SetClientListeningFlags(iClient, VOICE_LISTENALL);
-		case 2: if (!IsPlayerAlive(iClient)) SetClientListeningFlags(iClient, VOICE_TEAM);
-		default: SetClientListeningFlags(iClient, VOICE_NORMAL);
-	}
-}
-
-stock void HP_SetThirdPerson(int iClient)
+stock void SetThirdPerson(int iClient)
 {
 	SetEntPropEnt(iClient, Prop_Send, "m_hObserverTarget", 0);
 	SetEntProp(iClient, Prop_Send, "m_iObserverMode", 1);
@@ -254,7 +202,7 @@ stock void HP_SetThirdPerson(int iClient)
 	SetEntProp(clieiClientnt, Prop_Send, "m_iFOV", 120);
 }
 
-stock void HP_SetFirstPerson(int client)
+stock void SetFirstPerson(int client)
 {
 	SetEntPropEnt(iClient, Prop_Send, "m_hObserverTarget", 1);
 	SetEntProp(iClient, Prop_Send, "m_iObserverMode", 0);
@@ -262,7 +210,7 @@ stock void HP_SetFirstPerson(int client)
 	SetEntProp(iClient, Prop_Send, "m_iFOV", 90);
 }
 
-stock void HP_ResetArmor(int iClient)
+stock void ResetArmor(int iClient)
 {
 	SetEntProp(iClient, Prop_Send, "m_bHasHelmet", 0);
 	SetEntProp(iClient, Prop_Send, "m_ArmorValue", 0, 0);
@@ -270,13 +218,13 @@ stock void HP_ResetArmor(int iClient)
 	SetEntProp(iClient, Prop_Send, "m_bWearingSuit", 0);
 }
 
-stock void HP_RadarVisibilityToggle(int iClient, bool bStatus)
+stock void RadarVisibilityToggle(int iClient, bool bStatus)
 {
 	static int iOffset = FindSendPropInfo("CBaseEntity", "m_bSpotted");
 
-	if (iOffset > 0)
+	if (iOffset)
 	{
-		static Address g_aCanBeSpotted = view_as<Address>(iOffset - 4);
+		static Address g_aCanBeSpotted = view_as<Address>((iOffset - 4));
 
 		if (bStatus)
 		{
@@ -291,7 +239,7 @@ stock void HP_RadarVisibilityToggle(int iClient, bool bStatus)
 	}
 }
 
-stock bool HP_GetClientCrosshairOrigin(int iClient, float fOrigin[3], bool bFilterPlayers = true, float fDistance = -35.0)
+stock bool GetClientCrosshairOrigin(int iClient, float fOrigin[3], bool bFilterPlayers = true, float fDistance = -35.0)
 {
 	if (iClient == 0 || iClient > MaxClients || !IsClientInGame(iClient))
 		return false;
@@ -322,19 +270,14 @@ stock bool HP_GetClientCrosshairOrigin(int iClient, float fOrigin[3], bool bFilt
 	return bReturn;
 }
 
-stock bool HP_TraceEntityFilterPlayer(int iEntity, int iMask, any aData)
+stock bool TraceEntityFilterPlayer(int iEntity, int iMask, any aData)
 {
 	return iEntity > GetMaxClients() || !iEntity;
 }
 
-stock bool HP_TraceEntityFilterNone(int iEntity, int iMask, any aData)
+stock bool TraceEntityFilterNone(int iEntity, int iMask, any aData)
 {
 	return iEntity != aData;
-}
-
-stock bool HP_IsClientStaff(int iClient)
-{
-	return view_as<bool>(GetUserFlagBits(iClient) & (ADMFLAG_ROOT|ADMFLAG_BAN));
 }
 
 stock bool HP_IsClientDonor(int iClient)
@@ -342,12 +285,22 @@ stock bool HP_IsClientDonor(int iClient)
 	return view_as<bool>((GetUserFlagBits(iClient) & ADMFLAG_RESERVATION));
 }
 
-stock bool HP_IsClientAdmin(int iClient)
+stock bool HP_IsClientStaff(int iClient)
 {
-	return view_as<bool>((GetUserFlagBits(iClient) & ADMFLAG_BAN));
+	return view_as<bool>(GetUserFlagBits(iClient) & (ADMFLAG_ROOT|ADMFLAG_BAN|ADMFLAG_KICK));
 }
 
 stock bool HP_IsClientOwner(int iClient)
 {
 	return view_as<bool>((GetUserFlagBits(iClient) & ADMFLAG_ROOT));
+}
+
+stock bool HP_IsClientAdmininistrator(int iClient)
+{
+	return view_as<bool>((GetUserFlagBits(iClient) & ADMFLAG_BAN));
+}
+
+stock bool HP_IsClientModerator(int iClient)
+{
+	return view_as<bool>((GetUserFlagBits(iClient) & ADMFLAG_KICK));
 }

@@ -3,27 +3,22 @@
 #endif
 #define _HP_MODULE_RANDOM_INCLUDED_
 
-stock bool HP_ShouldHappen(float fChance)
+stock bool ShouldHappen(float fChance)
 {
-	return GetRandomInt(1, 100) <= chance;
+	return GetRandomInt(1, 100) <= fChance;
 }
 
-stock bool HP_RandomBool()
+stock bool RandomBool()
 {
 	return view_as<bool>(HP_RandomInt(0, 1));
 }
 
-stock int HP_RandomInt(int iMin, int iMax)
+stock int RandomInt(int iMin, int iMax)
 {
-	int iRandom = GetURandomInt();
-
-	if (iRandom == 0)
-		iRandom++;
-
-	return RoundToCeil(float(iRandom) / (float(MAX_INTEGER_VALUE) / float(iMax - iMin + 1))) + iMin - 1;
+	return RountToZero(GetURandomFloat() * (iMax - iMin + 1) + iMin);
 }
 
-stock float HP_RandomFloat(float min, float max)
+stock float RandomFloat(float iMin, float iMax)
 {
-	return (GetURandomFloat() * (max - min)) + min;
+	return (GetURandomFloat() * (iMax - iMin)) + iMin;
 }

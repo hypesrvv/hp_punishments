@@ -9,10 +9,7 @@
 #endif
 
 #pragma semicolon 1
-#pragma newdecls required;
-
-#include <sourcemod>
-#include <sdktools>
+#pragma newdecls required
 
 #define HP_PLUG   "[HS] "
 
@@ -27,11 +24,22 @@
 #define TAG_HYPESRV_NCLR    "[HypeSRV]"
 #define TAG_HYPESRV_CONSOLE "[{LIGHTBLUE}HypeSRV{DEFAULT}]"
 
-#define MAX_STRING_LENGTH 1024
 #define HYPESRV_IP "104.243.41.150"
+#define HYPESRV_WEB_IP "cs.hypesrv.com"
 
-#define HYPESRV_API ""
-#define HYPESRV_AUTH_TOKEN ""
+#define	HYPESRV_API "https://api.hypesrv.com/"
+#define HYPESRV_AUTH_TOKEN "SD7hyuum66Bk7pKS6WsBJsThURgsFugh"
+
+#define CS_COLOR_T { 204, 153, 102 }
+#define CS_COLOR_CT { 73, 104, 247 }
+
+#define MAX_CONSOLE_LENGTH 1024
+#define MAX_STRING_LENGTH  512
+#define MAX_MESSAGE_LENGTH 256
+#define MAX_BUFFER_LENGTH  (MAX_MESSAGE_LENGTH * 4)
+
+#define SDK_TIMER_128 0.1
+#define SDK_TIMER_64 0.2
 
 #if !defined _cstrike_included
 	#define CS_TEAM_NONE        0   /* No team yet */
@@ -48,8 +56,6 @@
 	#define CS_SLOT_UTILITY     12  /* Slot for tablet */
 #endif
 
-#include <hypesrv/variable/bit>
-#include <hypesrv/variable/float>
 #include <hypesrv/variable/int>
 #include <hypesrv/variable/random>
 #include <hypesrv/variable/strings>
@@ -58,146 +64,23 @@
 
 #include <hypesrv/command>
 #include <hypesrv/entity>
+#include <hypesrv/prop>
 #include <hypesrv/server>
 #include <hypesrv/client>
 #include <hypesrv/menu>
 #include <hypesrv/sound>
 
- // fix this shit later cause hypesrv work abuse
-stock char szConsoleColoursTags[][] =
+stock const char g_szHypeSRVWelcome[11][69] =
 {
-	// Styles
-
-	"{BRIGHT}",
-	"{DIM}",
-	"{UNDERSCORE}",
-	"{BLINK}",
-	"{REVERSE}",
-	"{HIDDEN}",
-
-	// Colors
-
-	"{NORMAL}",
-	"{DEFAULT}",
-	"{BLACK}",
-	"{RED}",
-	"{GREEN}",
-	"{YELLOW}",
-	"{BLUE}",
-	"{PURPLE}",
-	"{CYAN}",
-	"{GREY}",
-	"{DARKGREY}",
-	"{PINK}",
-	"{LIME}",
-	"{ORANGE}",
-	"{LIGHTBLUE}",
-	"{PURPLE}",
-	"{TEAL}",
-	"{WHITE}",
-
-	"{BLACK_BOLD}",
-	"{RED_BOLD}",
-	"{GREEN_BOLD}",
-	"{YELLOW_BOLD}",
-	"{BLUE_BOLD}",
-	"{PURPLE_BOLD}",
-	"{CYAN_BOLD}",
-	"{GREY_BOLD}",
-	"{DARKGREY_BOLD}",
-	"{PEACH_BOLD}",
-	"{LIME_BOLD}",
-	"{ORANGE_BOLD}",
-	"{LIGHTBLUE_BOLD}",
-	"{MAGENTA_BOLD}",
-	"{TEAL_BOLD}",
-	"{WHITE_BOLD}",
+	" /$$   /$$                                /$$$$$$  /$$$$$$$  /$$    /$$",
+	"| $$  | $$                               /$$__  $$| $$__  $$| $$   | $$",
+	"| $$  | $$ /$$   /$$  /$$$$$$   /$$$$$$ | $$  \\__/| $$  \\ $$| $$   | $$",
+	"| $$$$$$$$| $$  | $$ /$$__  $$ /$$__  $$|  $$$$$$ | $$$$$$$/|  $$ / $$/",
+	"| $$__  $$| $$  | $$| $$  \\ $$| $$$$$$$$ \\____  $$| $$__  $$ \\  $$ $$/",
+	"| $$  | $$| $$  | $$| $$  | $$| $$_____/ /$$  \\ $$| $$  \\ $$  \\  $$$/",
+	"| $$  | $$|  $$$$$$$| $$$$$$$/|  $$$$$$$|  $$$$$$/| $$  | $$   \\  $/",
+	"|__/  |__/ \\____  $$| $$____/  \\_______/ \\______/ |__/  |__/    \\_/",
+	"           /$$  | $$| $$",
+	"          |  $$$$$$/| $$",
+	"           \\______/ |__/"
 };
-
-stock char szConsoleColoursCodes[][] =
-{
-	// Styles
-
-	"\x1b[1m",
-	"\x1b[2m",
-	"\x1b[4m",
-	"\x1b[5m",
-	"\x1b[7m",
-	"\x1b[8m",
-
-	// Colors
-
-	"\x1b[0m",
-	"\x1b[0m",
-	"\x1b[30m",
-	"\x1b[31m",
-	"\x1b[32m",
-	"\x1b[33m",
-	"\x1b[34m",
-	"\x1b[35m",
-	"\x1b[36m",
-	"\x1b[37m",
-	"\x1b[90m",
-	"\x1b[91m",
-	"\x1b[92m",
-	"\x1b[93m",
-	"\x1b[94m",
-	"\x1b[95m",
-	"\x1b[96m",
-	"\x1b[97m",
-
-	"\x1b[1;30m",
-	"\x1b[1;31m",
-	"\x1b[1;32m",
-	"\x1b[1;33m",
-	"\x1b[1;34m",
-	"\x1b[1;35m",
-	"\x1b[1;36m",
-	"\x1b[1;37m",
-	"\x1b[1;90m",
-	"\x1b[1;91m",
-	"\x1b[1;92m",
-	"\x1b[1;93m",
-	"\x1b[1;94m",
-	"\x1b[1;95m",
-	"\x1b[1;96m",
-	"\x1b[1;97m",
-};
-
-stock void CPrintToServer(char[] szMessage, any ...)
-{
-	decl char szOutput[PLATFORM_MAX_PATH];
-	VFormat(szOutput, sizeof(szOutput), szMessage, 2);
-
-	for (int i = 0; i < sizeof(szConsoleColoursTags); i++)
-		ReplaceString(szOutput, 250, szConsoleColoursTags[i], szConsoleColoursCodes[i]);
-
-	PrintToServer(szOutput);
-}
-
-stock void LogDebug(const char[] szMessage, any ...)
-{
-	decl char szTime[48];
-	decl char szPath[PLATFORM_MAX_PATH];
-	decl char szBuffer[PLATFORM_MAX_PATH * 2];
-
-	VFormat(szBuffer, sizeof(szBuffer), szMessage, 2);
-
-	BuildPath(Path_SM, szPath, sizeof(szPath), "logs/%s.log", g_szPluginName);
-
-	Format(szBuffer, sizeof(szBuffer), "%s {GREY}%s", g_szTagConsole, szBuffer);
-
-	CPrintToServer(szBuffer);
-
-	FormatTime(szTime, sizeof(szTime), "L %Y/%m/%d - %I:%M:%S ");
-	Format(szBuffer, sizeof(szBuffer), "%s%s", szTime, szBuffer);
-
-	for (int i = 0; i < sizeof(szConsoleColoursCodes); i++)
-		ReplaceString(szBuffer, sizeof(szBuffer), szConsoleColoursTags[i], NULL_STRING);
-
-	File hFile = OpenFile(szPath, "a+");
-	hFile.WriteLine(szBuffer);
-	hFile.Flush();
-
-	delete hFile;
-}

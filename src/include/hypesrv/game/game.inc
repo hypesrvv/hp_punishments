@@ -31,17 +31,17 @@ enum GamePhase
 	GamePhase_PostGame	 = 5,
 };
 
-stock void HP_EnsurePausedWarmup()
+stock void EnsurePausedWarmup()
 {
-	if (!HP_IsWarmupPeriod())
-		HP_StartWarmup();
+	if (!IsWarmupPeriod())
+		StartWarmup();
 
 	ServerCommand("mp_warmup_pausetimer 1");
 	ServerCommand("mp_do_warmup_period 1");
 	ServerCommand("mp_warmup_pausetimer 1");
 }
 
-stock void HP_StartWarmup(bool bIndefiniteWarmup = true, int iWarmupTime = 60)
+stock void StartWarmup(bool bIndefiniteWarmup = true, int iWarmupTime = 60)
 {
 	ServerCommand("mp_do_warmup_period 1");
 	ServerCommand("mp_warmuptime %d", iWarmupTime);
@@ -54,9 +54,9 @@ stock void HP_StartWarmup(bool bIndefiniteWarmup = true, int iWarmupTime = 60)
 	}
 }
 
-stock void HP_EndWarmup(int iTime = 0)
+stock void EndWarmup(int iTime = 0)
 {
-	if (iTime > 0)
+	if (iTime)
 	{
 		ServerCommand("mp_warmup_pausetimer 0");
 		ServerCommand("mp_warmuptime %d", iTime);
@@ -65,12 +65,12 @@ stock void HP_EndWarmup(int iTime = 0)
 		ServerCommand("mp_warmup_end");
 }
 
-stock bool HP_IsMatchPaused()
+stock bool IsMatchPaused()
 {
 	return HP_GetPropBool("m_bMatchWaitingForResume");
 }
 
-stock void HP_PauseMatch(int iTime = 0, int iTeam = CS_TEAM_NONE)
+stock void PauseMatch(int iTime = 0, int iTeam = CS_TEAM_NONE)
 {
 	if (iTime > 0 || iTeam >= CS_TEAM_T)
 	{
@@ -91,91 +91,91 @@ stock void HP_PauseMatch(int iTime = 0, int iTeam = CS_TEAM_NONE)
 		ServerCommand("mp_pause_match");
 }
 
-stock void HP_UnPauseMatch()
+stock void UnPauseMatch()
 {
 	ServerCommand("mp_unpause_match");
 }
 
-stock void HP_RestartGame(int iDelay = 1)
+stock void RestartGame(int iDelay = 1)
 {
 	ServerCommand("mp_restartgame %d", iDelay);
 }
 
-stock RoundState HP_GetRoundState()
+stock RoundState GetRoundState()
 {
 	return view_as<RoundState>(GameRules_GetProp("m_iRoundState"));
 }
 
-stock GamePhase HP_GetGamePhase()
+stock GamePhase GetGamePhase()
 {
-	return HP_GetPropBool("m_gamePhase");
+	return GetPropBool("m_gamePhase");
 }
 
-stock bool HP_IsWarmUpPeriod()
+stock bool IsWarmUpPeriod()
 {
-	return HP_GetPropBool("m_bWarmupPeriod");
+	return GetPropBool("m_bWarmupPeriod");
 }
 
-stock float HP_WarmupTimeLeft()
+stock float WarmupTimeLeft()
 {
 	return GameRules_GetProp("m_fWarmupPeriodEnd");
 }
 
-stock bool HP_IsOvertime()
+stock bool IsOvertime()
 {
-	return HP_GetPropBool("m_nOvertimePlaying");
+	return GetPropBool("m_nOvertimePlaying");
 }
 
-stock bool HP_IsFreezeTime()
+stock bool IsFreezeTime()
 {
-	return HP_GetPropBool("m_bFreezePeriod");
+	return GetPropBool("m_bFreezePeriod");
 }
 
-stock bool HP_IsBombPlanted()
+stock bool IsBombPlanted()
 {
-	return HP_GetPropBool("m_bBombPlanted");
+	return GetPropBool("m_bBombPlanted");
 }
 
-stock int HP_GetTotalRoundTime()
+stock int GetTotalRoundTime()
 {
 	return GameRules_GetProp("m_iRoundTime");
 }
 
-stock bool HP_ChangeMap(const char[] szMap)
+stock bool ChangeMap(const char[] szMap)
 {
     ServerCommand("changelevel %s", szMap);
     return true;
 }
 
-stock bool HP_IsTVEnabled()
+stock bool IsTVEnabled()
 {
-	return (HP_GetConVarIntSafe("tv_enable") != -1);
+	return FindConVar("tv_enable").BoolValue;
 }
 
-stock int HP_GetTvDelay()
+stock int GetTvDelay()
 {
-	return (HP_IsTVEnabled() ? GetCvarIntSafe("tv_delay") : 0);
+	return (IsTVEnabled() ? FindConVar("tv_delay").IntValue : -1);
 }
 
-stock bool HP_StartRecord(const char[] szDemo)
+stock bool StartRecordDemo(const char[] szDemo)
 {
 	char szDemoName[256];
 	strcopy(szDemoName, sizeof(szDemoName), szDemo);
 	ReplaceString(szDemoName, sizeof(szDemoName), "\"", "\\\"");
 	ServerCommand("tv_record \"%s\"", szDemoName);
 
-	if (HP_IsTVEnabled())
+	if (IsTVEnabled())
 		return true;
 
 	return false;
 }
 
-stock void HP_StopRecord()
+stock void StopRecord()
 {
 	ServerCommand("tv_stoprecord");
 }
 
-stock void HP_ExecCFG(const char[] szFile)
+stock void ExecCFG(const char[] szFile)
 {
 	ServerCommand("exec \"%s\"", szFile);
 }
